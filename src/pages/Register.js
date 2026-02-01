@@ -1,55 +1,98 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
+import api from '../services/api';
+import './Login.css';
 
-const Register = () => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+function Register() {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
 
-  const handleRegister = async (e) => {
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     try {
-      await axios.post('http://localhost:3000/api/auth/register', {
-        username,
-        email,
-        password
-      });
+      console.log('Sending registration data:', formData);
+      const response = await api.post('/auth/register', formData);
+      console.log('Registration successful:', response.data);
       
-      alert('회원가입 성공!');
+      // 회원가입 성공 후 로그인 페이지로 이동
+      alert('회원가입이 완료되었습니다! 로그인해주세요.');
       navigate('/login');
-    } catch (error) {
-      alert('회원가입 실패');
+    } catch (err) {
+      console.error('Registration error:', err);
+      console.error('Error response:', err.response?.data);
+      setError(err.response?.data?.message || '회원가입에 실패했습니다.');
     }
   };
 
   return (
-    <div>
-      <h2>회원가입</h2>
-      <form onSubmit={handleRegister}>
-        <input
-          type="text"
-          placeholder="사용자명"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">회원가입</button>
-      </form>
+    <div className="login-container">
+      <div className="login-box">
+        <h1 className="login-title">눈바디 회원가입</h1>
+        
+        {error && <div className="error-message">{error}</div>}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <input
+              type="text"
+              name="username"
+              placeholder="사용자명"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              className="login-input"
+            />
+          </div>
+          
+          <div className="input-group">
+            <input
+              type="email"
+              name="email"
+              placeholder="이메일"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="login-input"
+            />
+          </div>
+          
+          <div className="input-group">
+            <input
+              type="password"
+              name="password"
+              placeholder="비밀번호"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="login-input"
+            />
+          </div>
+          
+          <button type="submit" className="login-button">
+            회원가입
+          </button>
+        </form>
+
+        <div className="signup-link">
+          이미 계정이 있으신가요? <Link to="/login">로그인</Link>
+        </div>
+      </div>
     </div>
   );
-};
+}
 
 export default Register;
