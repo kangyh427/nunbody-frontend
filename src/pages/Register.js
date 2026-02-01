@@ -8,20 +8,40 @@ function Register() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (loading) return;
+    
     setError('');
 
+    // 비밀번호 확인
+    if (formData.password !== formData.confirmPassword) {
+      setError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      await axios.post('https://nunbody-mvp.onrender.com/api/auth/register', formData);
+      await axios.post('https://nunbody-mvp.onrender.com/api/auth/register', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
+      
       alert('회원가입 성공! 로그인해주세요.');
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || '회원가입 실패');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,6 +57,7 @@ function Register() {
             value={formData.username}
             onChange={(e) => setFormData({...formData, username: e.target.value})}
             required
+            disabled={loading}
           />
           <input
             type="email"
@@ -44,6 +65,7 @@ function Register() {
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
+            disabled={loading}
           />
           <input
             type="password"
@@ -51,8 +73,19 @@ function Register() {
             value={formData.password}
             onChange={(e) => setFormData({...formData, password: e.target.value})}
             required
+            disabled={loading}
           />
-          <button type="submit">회원가입</button>
+          <input
+            type="password"
+            placeholder="비밀번호 확인"
+            value={formData.confirmPassword}
+            onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+            required
+            disabled={loading}
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? '처리중...' : '회원가입'}
+          </button>
         </form>
         <p>이미 계정이 있으신가요? <Link to="/login">로그인</Link></p>
       </div>
