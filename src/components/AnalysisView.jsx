@@ -147,81 +147,98 @@ const AnalysisView = () => {
             </div>
             <div className="form-row">
               <div className="form-group"><label>나이</label><input type="number" placeholder="30" value={userProfile.age} onChange={(e) => setUserProfile({...userProfile, age: e.target.value})} /></div>
-              <div className="form-group"><label>성별</label><select value={userProfile.gender} onChange={(e) => setUserProfile({...userProfile, gender: e.target.value})}><option value="">선택</option><option value="male">남성</option><option value="female">여성</option></select></div>
+              <div className="form-group">
+                <label>성별</label>
+                <select value={userProfile.gender} onChange={(e) => setUserProfile({...userProfile, gender: e.target.value})}>
+                  <option value="">선택</option>
+                  <option value="male">남성</option>
+                  <option value="female">여성</option>
+                </select>
+              </div>
             </div>
-            <div className="modal-btns"><button className="btn-cancel" onClick={() => setShowProfileModal(false)}>취소</button><button className="btn-save" onClick={saveUserProfile}>저장</button></div>
+            <div className="modal-btns">
+              <button className="btn-cancel" onClick={() => setShowProfileModal(false)}>취소</button>
+              <button className="btn-save" onClick={saveUserProfile}>저장</button>
+            </div>
           </div>
         </div>
       )}
 
       {/* 모드 선택 */}
       <div className="mode-selector">
-        <button className={mode === 'single' ? 'mode-btn active' : 'mode-btn'} onClick={() => setMode('single')}>📷 단일 분석</button>
-        <button className={mode === 'compare' ? 'mode-btn active' : 'mode-btn'} onClick={() => setMode('compare')}>🔄 비교 분석</button>
+        <button className={`mode-btn ${mode === 'single' ? 'active' : ''}`} onClick={() => { setMode('single'); setComparisonResult(null); }}>📷 단일 분석</button>
+        <button className={`mode-btn ${mode === 'compare' ? 'active' : ''}`} onClick={() => { setMode('compare'); setAnalysisResult(null); }}>🔄 비교 분석</button>
       </div>
 
       {/* 사진 선택 */}
-      <div className="photo-selection">
-        {mode === 'single' ? (
-          <div className="single-select">
-            <h3>📸 분석할 사진</h3>
+      {mode === 'single' ? (
+        <div className="photo-selection">
+          <h3>분석할 사진 선택</h3>
+          {photos.length === 0 ? <p className="no-photos">사진이 없습니다. 먼저 사진을 업로드해주세요.</p> : (
             <div className="photo-grid">
               {photos.map(p => (
                 <div key={p.id} className={`photo-item ${selectedPhoto?.id === p.id ? 'selected' : ''}`} onClick={() => setSelectedPhoto(p)}>
                   <img src={p.photo_url} alt="" />
                   <span className="photo-date">{formatDate(p.taken_at)}</span>
-                  {selectedPhoto?.id === p.id && <div className="selected-badge">✓</div>}
+                  {selectedPhoto?.id === p.id && <span className="selected-badge">선택</span>}
                 </div>
               ))}
             </div>
-            {photos.length === 0 && <p className="no-photos">사진이 없습니다.</p>}
-          </div>
-        ) : (
+          )}
+        </div>
+      ) : (
+        <div className="photo-selection">
           <div className="compare-select">
             <div className="compare-col">
-              <h3>📅 Before</h3>
+              <h3>📅 Before (이전)</h3>
               <div className="photo-grid">
                 {photos.map(p => (
                   <div key={p.id} className={`photo-item ${selectedPhoto?.id === p.id ? 'selected before' : ''}`} onClick={() => setSelectedPhoto(p)}>
                     <img src={p.photo_url} alt="" />
                     <span className="photo-date">{formatDate(p.taken_at)}</span>
-                    {selectedPhoto?.id === p.id && <div className="selected-badge before">이전</div>}
+                    {selectedPhoto?.id === p.id && <span className="selected-badge before">Before</span>}
                   </div>
                 ))}
               </div>
             </div>
             <div className="compare-col">
-              <h3>📅 After</h3>
+              <h3>📅 After (이후)</h3>
               <div className="photo-grid">
                 {photos.map(p => (
                   <div key={p.id} className={`photo-item ${comparePhoto?.id === p.id ? 'selected after' : ''}`} onClick={() => setComparePhoto(p)}>
                     <img src={p.photo_url} alt="" />
                     <span className="photo-date">{formatDate(p.taken_at)}</span>
-                    {comparePhoto?.id === p.id && <div className="selected-badge after">이후</div>}
+                    {comparePhoto?.id === p.id && <span className="selected-badge after">After</span>}
                   </div>
                 ))}
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {error && <div className="error-msg">{error}</div>}
 
+      {/* 분석 버튼 */}
       <div className="action-btns">
         {mode === 'single' ? (
-          <button className="analyze-btn" onClick={handleAnalyze} disabled={loading || !selectedPhoto}>{loading ? '🔄 분석 중...' : '🤖 AI 정밀 분석'}</button>
+          <button className="analyze-btn" onClick={handleAnalyze} disabled={!selectedPhoto || loading}>
+            {loading ? '분석 중...' : '🔬 AI 정밀 분석'}
+          </button>
         ) : (
-          <button className="analyze-btn compare" onClick={handleCompare} disabled={loading || !selectedPhoto || !comparePhoto}>{loading ? '🔄 비교 중...' : '🔄 변화 정밀 비교'}</button>
+          <button className="analyze-btn compare" onClick={handleCompare} disabled={!selectedPhoto || !comparePhoto || loading}>
+            {loading ? '비교 중...' : '🔄 변화 정밀 비교'}
+          </button>
         )}
       </div>
 
+      {/* 로딩 */}
       {loading && (
         <div className="loading-overlay">
           <div className="loading-box">
             <div className="spinner"></div>
-            <p>🤖 AI 정밀 분석 중...</p>
-            <p className="loading-sub">{userProfile.height_cm ? `📏 ${userProfile.height_cm}cm 기준 축척 계산` : '사진 조건 분석'} + 12개 근육군</p>
+            <p>{mode === 'single' ? 'AI가 분석 중입니다...' : 'AI가 변화를 비교 중입니다...'}</p>
+            <p className="loading-sub">약 10-20초 소요</p>
           </div>
         </div>
       )}
@@ -229,19 +246,19 @@ const AnalysisView = () => {
       {/* ===== 단일 분석 결과 ===== */}
       {analysisResult && (
         <div className="analysis-result">
-          <h2>📊 AI 정밀 분석 <span className="ver">v4.1</span></h2>
+          <h2>📊 분석 결과 <span className="ver">v{analysisResult.analysisVersion || '4.1'}</span></h2>
 
           {/* 사진 조건 */}
           {analysisResult.photoConditions && (
-            <div className="section photo-cond">
+            <div className="section conditions">
               <h3>📷 사진 조건</h3>
               <div className="cond-grid">
-                <div className="cond-item"><span className="cond-label">근육</span><span>{CONDITION_LABELS.muscleState[analysisResult.photoConditions.muscleState] || analysisResult.photoConditions.muscleState}</span></div>
+                <div className="cond-item"><span className="cond-label">근육 상태</span><span>{CONDITION_LABELS.muscleState[analysisResult.photoConditions.muscleState] || analysisResult.photoConditions.muscleState}</span></div>
                 <div className="cond-item"><span className="cond-label">조명</span><span>{CONDITION_LABELS.lighting[analysisResult.photoConditions.lighting] || analysisResult.photoConditions.lighting}</span></div>
                 <div className="cond-item"><span className="cond-label">거리</span><span>{CONDITION_LABELS.distance[analysisResult.photoConditions.distance] || analysisResult.photoConditions.distance}</span></div>
                 <div className="cond-item"><span className="cond-label">신뢰도</span><ConfidenceBadge level={analysisResult.photoConditions.analysisReliability} /></div>
               </div>
-              {analysisResult.photoConditions.analysisLimitations && <p className="limit-note">⚠️ {analysisResult.photoConditions.analysisLimitations}</p>}
+              {analysisResult.photoConditions.analysisLimitations && <div className="limit-note">⚠️ {analysisResult.photoConditions.analysisLimitations}</div>}
             </div>
           )}
 
@@ -251,23 +268,23 @@ const AnalysisView = () => {
               <h3>📐 축척 보정</h3>
               <div className="cal-grid">
                 <span>기준: {analysisResult.spatialCalibration.primaryAnchor}</span>
-                {analysisResult.spatialCalibration.pixelsPerCm && <span>{analysisResult.spatialCalibration.pixelsPerCm} px/cm</span>}
                 <ConfidenceBadge level={analysisResult.spatialCalibration.calibrationConfidence} />
               </div>
+              {analysisResult.spatialCalibration.calibrationNote && <p>{analysisResult.spatialCalibration.calibrationNote}</p>}
             </div>
           )}
 
           {/* 전체 점수 */}
           <div className="score-card">
-            <div className="score-circle" style={{ borderColor: getScoreColor(analysisResult.overallScore / 10) }}>
+            <div className="score-circle">
               <span className="score-num">{analysisResult.overallScore || '-'}</span>
-              <span className="score-label">점</span>
+              <span className="score-label">/100</span>
             </div>
             <div className="score-info">
               <h3>{analysisResult.bodyType} <ConfidenceBadge level={analysisResult.overallConfidence} /></h3>
               <p>{analysisResult.bodyTypeDescription}</p>
               {analysisResult.estimatedBodyFatPercent && (
-                <div className="bf-est">추정 체지방: <strong>{analysisResult.estimatedBodyFatPercent}%</strong> <ConfidenceBadge level={analysisResult.bodyFatConfidence} /></div>
+                <p className="bf-est">체지방률 추정: ~{analysisResult.estimatedBodyFatPercent}% <ConfidenceBadge level={analysisResult.bodyFatConfidence} /></p>
               )}
             </div>
           </div>
@@ -277,25 +294,23 @@ const AnalysisView = () => {
             <div className="section texture">
               <h3>🔬 질감 분석</h3>
               <div className="tex-grid">
-                <div className="tex-item"><span>데피니션</span><span style={{ color: getScoreColor(analysisResult.textureAnalysis.overallDefinition) }}>{analysisResult.textureAnalysis.overallDefinition}/10</span></div>
-                <div className="tex-item"><span>혈관 비침</span><span>{analysisResult.textureAnalysis.vascularity === 'none' ? '없음' : analysisResult.textureAnalysis.vascularity === 'minimal' ? '약간' : analysisResult.textureAnalysis.vascularity === 'moderate' ? '보통' : '높음'}</span></div>
-                <div className="tex-item"><span>피하지방</span><span>{analysisResult.textureAnalysis.skinFoldEstimate === 'thick' ? '두꺼움' : analysisResult.textureAnalysis.skinFoldEstimate === 'moderate' ? '보통' : analysisResult.textureAnalysis.skinFoldEstimate === 'thin' ? '얇음' : '매우 얇음'}</span></div>
+                <div className="tex-item"><span>데피니션</span><span>{analysisResult.textureAnalysis.overallDefinition}/10</span></div>
+                <div className="tex-item"><span>혈관비침</span><span>{analysisResult.textureAnalysis.vascularity}</span></div>
+                <div className="tex-item"><span>피하지방</span><span>{analysisResult.textureAnalysis.skinFoldEstimate}</span></div>
               </div>
-              {analysisResult.textureAnalysis.note && <p className="tex-note">{analysisResult.textureAnalysis.note}</p>}
             </div>
           )}
 
-          {/* 추정 치수 */}
+          {/* 측정치 */}
           {analysisResult.estimatedMeasurements && (
             <div className="section measurements">
-              <h3>📏 추정 신체 치수</h3>
+              <h3>📏 추정 측정치</h3>
               <div className="meas-grid">
-                <div className="meas-item"><span>어깨</span><span>{analysisResult.estimatedMeasurements.shoulderWidth || '-'}</span></div>
-                <div className="meas-item"><span>가슴</span><span>{analysisResult.estimatedMeasurements.chestCircumference || '-'}</span></div>
-                <div className="meas-item"><span>허리</span><span>{analysisResult.estimatedMeasurements.waistCircumference || '-'}</span></div>
-                <div className="meas-item"><span>팔</span><span>{analysisResult.estimatedMeasurements.armCircumference || '-'}</span></div>
-                <div className="meas-item"><span>허벅지</span><span>{analysisResult.estimatedMeasurements.thighCircumference || '-'}</span></div>
-                <div className="meas-item"><span>대칭</span><span>{analysisResult.estimatedMeasurements.bodySymmetry ? `${analysisResult.estimatedMeasurements.bodySymmetry}/10` : '-'}</span></div>
+                {analysisResult.estimatedMeasurements.shoulderWidth && <div className="meas-item"><span>어깨</span><span>{analysisResult.estimatedMeasurements.shoulderWidth}</span></div>}
+                {analysisResult.estimatedMeasurements.chestCircumference && <div className="meas-item"><span>가슴</span><span>{analysisResult.estimatedMeasurements.chestCircumference}</span></div>}
+                {analysisResult.estimatedMeasurements.waistCircumference && <div className="meas-item"><span>허리</span><span>{analysisResult.estimatedMeasurements.waistCircumference}</span></div>}
+                {analysisResult.estimatedMeasurements.armCircumference && <div className="meas-item"><span>팔</span><span>{analysisResult.estimatedMeasurements.armCircumference}</span></div>}
+                {analysisResult.estimatedMeasurements.thighCircumference && <div className="meas-item"><span>허벅지</span><span>{analysisResult.estimatedMeasurements.thighCircumference}</span></div>}
               </div>
               {analysisResult.estimatedMeasurements.measurementNote && <p className="meas-note">{analysisResult.estimatedMeasurements.measurementNote}</p>}
             </div>
@@ -304,29 +319,58 @@ const AnalysisView = () => {
           {/* 근육 분석 */}
           {analysisResult.muscleAnalysis && (
             <div className="section muscles">
-              <h3>💪 세부 근육 분석</h3>
-              <div className="muscle-category"><h4>🏋️ 상체</h4><div className="muscle-list">{MUSCLE_CATEGORIES.upperBody.map(m => renderMuscle(m, getMuscleData(analysisResult.muscleAnalysis.upperBody, m)))}</div></div>
-              <div className="muscle-category"><h4>🎯 코어</h4><div className="muscle-list">{MUSCLE_CATEGORIES.core.map(m => renderMuscle(m, getMuscleData(analysisResult.muscleAnalysis.core, m)))}</div></div>
-              <div className="muscle-category"><h4>🦵 하체</h4><div className="muscle-list">{MUSCLE_CATEGORIES.lowerBody.map(m => renderMuscle(m, getMuscleData(analysisResult.muscleAnalysis.lowerBody, m)))}</div></div>
+              <h3>💪 근육별 분석</h3>
+              
+              {/* 상체 */}
+              {analysisResult.muscleAnalysis.upperBody && (
+                <div className="muscle-category">
+                  <h4>상체 (전체: {analysisResult.muscleAnalysis.upperBody.overall || '-'}/10)</h4>
+                  <div className="muscle-list">
+                    {MUSCLE_CATEGORIES.upperBody.map(m => renderMuscle(m, getMuscleData(analysisResult.muscleAnalysis.upperBody, m)))}
+                  </div>
+                </div>
+              )}
+
+              {/* 코어 */}
+              {analysisResult.muscleAnalysis.core && (
+                <div className="muscle-category">
+                  <h4>코어 (전체: {analysisResult.muscleAnalysis.core.overall || '-'}/10)</h4>
+                  <div className="muscle-list">
+                    {MUSCLE_CATEGORIES.core.map(m => renderMuscle(m, getMuscleData(analysisResult.muscleAnalysis.core, m)))}
+                  </div>
+                </div>
+              )}
+
+              {/* 하체 */}
+              {analysisResult.muscleAnalysis.lowerBody && (
+                <div className="muscle-category">
+                  <h4>하체 (전체: {analysisResult.muscleAnalysis.lowerBody.overall || '-'}/10)</h4>
+                  <div className="muscle-list">
+                    {MUSCLE_CATEGORIES.lowerBody.map(m => renderMuscle(m, getMuscleData(analysisResult.muscleAnalysis.lowerBody, m)))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* 약점/강점 */}
-          {analysisResult.weakestMuscles?.length > 0 && (
-            <div className="section weak">
-              <h3>🎯 강화 필요</h3>
-              {analysisResult.weakestMuscles.map((item, idx) => (
-                <div key={idx} className="weak-card" onClick={() => setExpandedMuscle(expandedMuscle === idx ? null : idx)}>
-                  <div className="weak-header">
-                    <span className="rank">#{item.rank || idx + 1}</span>
-                    <span className="name">{item.muscle}</span>
-                    <span className="score" style={{ backgroundColor: getScoreColor(item.score) }}>{item.score}/10</span>
+          {/* 약점 */}
+          {analysisResult.weakPoints?.length > 0 && (
+            <div className="section weak-points">
+              <h3>⚠️ 개선 필요</h3>
+              {analysisResult.weakPoints.map((wp, idx) => (
+                <div key={idx} className="weak-card">
+                  <div className="weak-header" onClick={() => setExpandedMuscle(expandedMuscle === idx ? null : idx)}>
+                    <span className="rank">{idx + 1}</span>
+                    <span className="name">{wp.muscle}</span>
+                    <span className="score" style={{ backgroundColor: getScoreColor(wp.score) }}>{wp.score}/10</span>
                     <span className="expand">{expandedMuscle === idx ? '▲' : '▼'}</span>
                   </div>
                   {expandedMuscle === idx && (
                     <div className="weak-detail">
-                      {item.reason && <p className="reason">💡 {item.reason}</p>}
-                      {item.exercises?.map((ex, i) => <div key={i} className="exercise">{ex.name} - {ex.sets} × {ex.reps}</div>)}
+                      <p className="reason">{wp.reason}</p>
+                      {wp.recommendedExercises?.map((ex, i) => (
+                        <div key={i} className="exercise">💪 {ex.name} - {ex.sets} × {ex.reps} | {ex.tip}</div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -334,13 +378,14 @@ const AnalysisView = () => {
             </div>
           )}
 
-          {analysisResult.strongestMuscles?.length > 0 && (
-            <div className="section strong">
-              <h3>💪 강점</h3>
-              {analysisResult.strongestMuscles.map((item, idx) => (
+          {/* 강점 */}
+          {analysisResult.strongPoints?.length > 0 && (
+            <div className="section strong-points">
+              <h3>✨ 강점</h3>
+              {analysisResult.strongPoints.map((sp, idx) => (
                 <div key={idx} className="strong-item">
-                  <span className="name">✅ {item.muscle}</span>
-                  <span className="score" style={{ color: getScoreColor(item.score) }}>{item.score}/10</span>
+                  <span className="name">{['🥇', '🥈', '🥉'][idx]} {sp.muscle}</span>
+                  <span className="score" style={{ color: getScoreColor(sp.score) }}>{sp.score}/10</span>
                 </div>
               ))}
             </div>
@@ -366,7 +411,7 @@ const AnalysisView = () => {
       {/* ===== 비교 분석 결과 ===== */}
       {comparisonResult && (
         <div className="comparison-result">
-          <h2>🔄 변화 비교 <span className="ver">v4.1</span></h2>
+          <h2>🔄 변화 비교 <span className="ver">v{comparisonResult.analysisVersion || '4.1'}</span></h2>
 
           {/* 조건 매칭 */}
           {comparisonResult.photoConditions?.conditionMatch && (
