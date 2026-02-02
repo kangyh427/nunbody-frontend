@@ -19,14 +19,22 @@ function Login() {
 
     try {
       const response = await axios.post(`${API_URL}/api/auth/login`, {
-        email,      // 수정: username → email
+        email,
         password
       });
 
-      if (response.data.token) {
+      // 수정: response.data.data 경로로 변경
+      if (response.data.data?.token) {
+        localStorage.setItem('token', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        navigate('/dashboard');
+      } else if (response.data.token) {
+        // 기존 형식도 지원 (호환성)
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         navigate('/dashboard');
+      } else {
+        setError('로그인 응답 형식이 올바르지 않습니다.');
       }
     } catch (err) {
       console.error('Login error:', err);
