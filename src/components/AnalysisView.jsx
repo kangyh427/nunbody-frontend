@@ -40,8 +40,21 @@ const AnalysisView = () => {
   const [userProfile, setUserProfile] = useState({ height_cm: '', weight_kg: '', age: '', gender: '' });
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
+  
+  // v4.2: 히스토리 관련 state
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState(null);
+  const [showHistoryDetail, setShowHistoryDetail] = useState(false);
 
   useEffect(() => { fetchPhotos(); fetchUserProfile(); }, []);
+  
+  // v4.2: 히스토리 모드 진입 시 데이터 로드
+  useEffect(() => {
+    if (mode === 'history') {
+      fetchHistory();
+    }
+  }, [mode]);
 
   const fetchPhotos = async () => {
     try {
@@ -59,6 +72,42 @@ const AnalysisView = () => {
         setUserProfile({ height_cm: res.data.profile.height_cm || '', weight_kg: res.data.profile.weight_kg || '', age: res.data.profile.age || '', gender: res.data.profile.gender || '' });
       }
     } catch (err) { console.error(err); }
+  };
+
+  // v4.2: 히스토리 목록 조회
+  const fetchHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/analysis/history`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.success) {
+        setHistory(res.data.history);
+      }
+    } catch (err) { console.error(err); }
+    finally { setHistoryLoading(false); }
+  };
+
+  // v4.2: 히스토리 상세 조회
+  const fetchHistoryDetail = async (historyId) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/analysis/history/${historyId}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.success) {
+        setSelectedHistory(res.data.history);
+        setShowHistoryDetail(true);
+        
+        // 분석 타입에 따라 결과 설정
+        if (res.data.history.analysisType === 'single') {
+          setAnalysisResult(res.data.history.result);
+          setComparisonResult(null);
+        } else {
+          setComparisonResult(res.data.history.result);
+          setAnalysisResult(null);
+        }
+      }
+    } catch (err) { console.error(err); setError('히스토리를 불러올 수 없습니다'); }
+    finally { setLoading(false); }
   };
 
   const saveUserProfile = async () => {
@@ -101,6 +150,7 @@ const AnalysisView = () => {
   const getScoreColor = (s) => s === null ? '#9E9E9E' : s >= 8 ? '#4CAF50' : s >= 6 ? '#8BC34A' : s >= 4 ? '#FFC107' : '#FF5722';
   const getChangeColor = (c) => { if (!c || c === '비교불가') return '#9E9E9E'; const n = parseFloat(c); return isNaN(n) ? '#9E9E9E' : n > 0 ? '#4CAF50' : n < 0 ? '#FF5722' : '#9E9E9E'; };
   const formatDate = (d) => new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' });
+  const formatDateTime = (d) => new Date(d).toLocaleString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   const getMuscleScore = (d) => d === null ? null : typeof d === 'number' ? d : d?.score ?? null;
   const getMuscleData = (cat, key) => cat?.[key] || null;
 
@@ -124,6 +174,43 @@ const AnalysisView = () => {
     );
   };
 
+  // v4.2: 히스토리 아이템 렌더링
+  const renderHistoryItem = (item) => {
+    const isCompare = item.analysis_type === 'compare';
+    const photoList = item.photos || [];
+    
+    return (
+      <div 
+        key={item.id} 
+        className="history-item"
+        onClick={() => fetchHistoryDetail(item.id)}
+      >
+        <div className="history-photos">
+          {photoList.slice(0, 2).map((p, idx) => (
+            <img key={idx} src={p.url} alt="" className="history-thumb" />
+          ))}
+        </div>
+        <div className="history-info">
+          <div className="history-type">
+            {isCompare ? '🔄 비교 분석' : '📷 단일 분석'}
+          </div>
+          <div className="history-date">{formatDateTime(item.created_at)}</div>
+          <div className="history-score">
+            {item.overall_score && (
+              <span className="score-badge" style={{ backgroundColor: getScoreColor(item.overall_score / 10) }}>
+                {item.overall_score}점
+              </span>
+            )}
+            {item.body_fat_percent && (
+              <span className="bf-badge">체지방 {item.body_fat_percent}%</span>
+            )}
+          </div>
+        </div>
+        <div className="history-arrow">›</div>
+      </div>
+    );
+  };
+
   return (
     <div className="analysis-container">
       {/* 프로필 설정 */}
@@ -140,7 +227,7 @@ const AnalysisView = () => {
         <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>📏 신체 정보 입력</h3>
-            <p className="modal-desc">정확한 분석을 위해 입력해주세요. AI가 실측치 계산에 활용합니다.</p>
+            <p className="modal-desc">정확한 분석을 위해 입력해주세요.</p>
             <div className="form-row">
               <div className="form-group"><label>키(cm)</label><input type="number" placeholder="175" value={userProfile.height_cm} onChange={(e) => setUserProfile({...userProfile, height_cm: e.target.value})} /></div>
               <div className="form-group"><label>몸무게(kg)</label><input type="number" placeholder="70" value={userProfile.weight_kg} onChange={(e) => setUserProfile({...userProfile, weight_kg: e.target.value})} /></div>
@@ -164,14 +251,44 @@ const AnalysisView = () => {
         </div>
       )}
 
-      {/* 모드 선택 */}
+      {/* v4.2: 모드 선택 (히스토리 탭 추가) */}
       <div className="mode-selector">
-        <button className={`mode-btn ${mode === 'single' ? 'active' : ''}`} onClick={() => { setMode('single'); setComparisonResult(null); }}>📷 단일 분석</button>
-        <button className={`mode-btn ${mode === 'compare' ? 'active' : ''}`} onClick={() => { setMode('compare'); setAnalysisResult(null); }}>🔄 비교 분석</button>
+        <button className={`mode-btn ${mode === 'single' ? 'active' : ''}`} onClick={() => { setMode('single'); setComparisonResult(null); setShowHistoryDetail(false); }}>📷 단일 분석</button>
+        <button className={`mode-btn ${mode === 'compare' ? 'active' : ''}`} onClick={() => { setMode('compare'); setAnalysisResult(null); setShowHistoryDetail(false); }}>🔄 비교 분석</button>
+        <button className={`mode-btn ${mode === 'history' ? 'active' : ''}`} onClick={() => { setMode('history'); setAnalysisResult(null); setComparisonResult(null); setShowHistoryDetail(false); }}>📊 분석 기록</button>
       </div>
 
-      {/* 사진 선택 */}
-      {mode === 'single' ? (
+      {/* v4.2: 히스토리 모드 */}
+      {mode === 'history' && !showHistoryDetail && (
+        <div className="history-section">
+          <h3>📊 분석 기록</h3>
+          {historyLoading ? (
+            <div className="history-loading">불러오는 중...</div>
+          ) : history.length === 0 ? (
+            <div className="history-empty">
+              <p>아직 분석 기록이 없습니다.</p>
+              <p>사진을 분석하면 여기에 기록이 저장됩니다.</p>
+            </div>
+          ) : (
+            <div className="history-list">
+              {history.map(item => renderHistoryItem(item))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* v4.2: 히스토리 상세 보기 헤더 */}
+      {showHistoryDetail && selectedHistory && (
+        <div className="history-detail-header">
+          <button className="back-btn" onClick={() => { setShowHistoryDetail(false); setAnalysisResult(null); setComparisonResult(null); }}>
+            ← 목록으로
+          </button>
+          <span className="history-detail-date">{formatDateTime(selectedHistory.createdAt)}</span>
+        </div>
+      )}
+
+      {/* 사진 선택 (단일/비교 모드에서만) */}
+      {mode === 'single' && !showHistoryDetail && (
         <div className="photo-selection">
           <h3>분석할 사진 선택</h3>
           {photos.length === 0 ? <p className="no-photos">사진이 없습니다. 먼저 사진을 업로드해주세요.</p> : (
@@ -186,7 +303,9 @@ const AnalysisView = () => {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {mode === 'compare' && !showHistoryDetail && (
         <div className="photo-selection">
           <div className="compare-select">
             <div className="compare-col">
@@ -219,18 +338,20 @@ const AnalysisView = () => {
 
       {error && <div className="error-msg">{error}</div>}
 
-      {/* 분석 버튼 */}
-      <div className="action-btns">
-        {mode === 'single' ? (
-          <button className="analyze-btn" onClick={handleAnalyze} disabled={!selectedPhoto || loading}>
-            {loading ? '분석 중...' : '🔬 AI 정밀 분석'}
-          </button>
-        ) : (
-          <button className="analyze-btn compare" onClick={handleCompare} disabled={!selectedPhoto || !comparePhoto || loading}>
-            {loading ? '비교 중...' : '🔄 변화 정밀 비교'}
-          </button>
-        )}
-      </div>
+      {/* 분석 버튼 (히스토리 모드가 아닐 때만) */}
+      {mode !== 'history' && !showHistoryDetail && (
+        <div className="action-btns">
+          {mode === 'single' ? (
+            <button className="analyze-btn" onClick={handleAnalyze} disabled={!selectedPhoto || loading}>
+              {loading ? '분석 중...' : '🔬 AI 정밀 분석'}
+            </button>
+          ) : (
+            <button className="analyze-btn compare" onClick={handleCompare} disabled={!selectedPhoto || !comparePhoto || loading}>
+              {loading ? '비교 중...' : '🔄 변화 정밀 비교'}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 로딩 */}
       {loading && (
@@ -246,7 +367,7 @@ const AnalysisView = () => {
       {/* ===== 단일 분석 결과 ===== */}
       {analysisResult && (
         <div className="analysis-result">
-          <h2>📊 분석 결과 <span className="ver">v{analysisResult.analysisVersion || '4.1'}</span></h2>
+          <h2>📊 분석 결과 <span className="ver">v{analysisResult.analysisVersion || '4.2'}</span></h2>
 
           {/* 사진 조건 */}
           {analysisResult.photoConditions && (
@@ -270,7 +391,6 @@ const AnalysisView = () => {
                 <span>기준: {analysisResult.spatialCalibration.primaryAnchor}</span>
                 <ConfidenceBadge level={analysisResult.spatialCalibration.calibrationConfidence} />
               </div>
-              {analysisResult.spatialCalibration.calibrationNote && <p>{analysisResult.spatialCalibration.calibrationNote}</p>}
             </div>
           )}
 
@@ -312,7 +432,6 @@ const AnalysisView = () => {
                 {analysisResult.estimatedMeasurements.armCircumference && <div className="meas-item"><span>팔</span><span>{analysisResult.estimatedMeasurements.armCircumference}</span></div>}
                 {analysisResult.estimatedMeasurements.thighCircumference && <div className="meas-item"><span>허벅지</span><span>{analysisResult.estimatedMeasurements.thighCircumference}</span></div>}
               </div>
-              {analysisResult.estimatedMeasurements.measurementNote && <p className="meas-note">{analysisResult.estimatedMeasurements.measurementNote}</p>}
             </div>
           )}
 
@@ -320,8 +439,6 @@ const AnalysisView = () => {
           {analysisResult.muscleAnalysis && (
             <div className="section muscles">
               <h3>💪 근육별 분석</h3>
-              
-              {/* 상체 */}
               {analysisResult.muscleAnalysis.upperBody && (
                 <div className="muscle-category">
                   <h4>상체 (전체: {analysisResult.muscleAnalysis.upperBody.overall || '-'}/10)</h4>
@@ -330,8 +447,6 @@ const AnalysisView = () => {
                   </div>
                 </div>
               )}
-
-              {/* 코어 */}
               {analysisResult.muscleAnalysis.core && (
                 <div className="muscle-category">
                   <h4>코어 (전체: {analysisResult.muscleAnalysis.core.overall || '-'}/10)</h4>
@@ -340,8 +455,6 @@ const AnalysisView = () => {
                   </div>
                 </div>
               )}
-
-              {/* 하체 */}
               {analysisResult.muscleAnalysis.lowerBody && (
                 <div className="muscle-category">
                   <h4>하체 (전체: {analysisResult.muscleAnalysis.lowerBody.overall || '-'}/10)</h4>
@@ -354,10 +467,10 @@ const AnalysisView = () => {
           )}
 
           {/* 약점 */}
-          {analysisResult.weakPoints?.length > 0 && (
+          {analysisResult.weakestMuscles?.length > 0 && (
             <div className="section weak-points">
               <h3>⚠️ 개선 필요</h3>
-              {analysisResult.weakPoints.map((wp, idx) => (
+              {analysisResult.weakestMuscles.map((wp, idx) => (
                 <div key={idx} className="weak-card">
                   <div className="weak-header" onClick={() => setExpandedMuscle(expandedMuscle === idx ? null : idx)}>
                     <span className="rank">{idx + 1}</span>
@@ -368,7 +481,7 @@ const AnalysisView = () => {
                   {expandedMuscle === idx && (
                     <div className="weak-detail">
                       <p className="reason">{wp.reason}</p>
-                      {wp.recommendedExercises?.map((ex, i) => (
+                      {wp.exercises?.map((ex, i) => (
                         <div key={i} className="exercise">💪 {ex.name} - {ex.sets} × {ex.reps} | {ex.tip}</div>
                       ))}
                     </div>
@@ -379,10 +492,10 @@ const AnalysisView = () => {
           )}
 
           {/* 강점 */}
-          {analysisResult.strongPoints?.length > 0 && (
+          {analysisResult.strongestMuscles?.length > 0 && (
             <div className="section strong-points">
               <h3>✨ 강점</h3>
-              {analysisResult.strongPoints.map((sp, idx) => (
+              {analysisResult.strongestMuscles.map((sp, idx) => (
                 <div key={idx} className="strong-item">
                   <span className="name">{['🥇', '🥈', '🥉'][idx]} {sp.muscle}</span>
                   <span className="score" style={{ color: getScoreColor(sp.score) }}>{sp.score}/10</span>
@@ -411,7 +524,7 @@ const AnalysisView = () => {
       {/* ===== 비교 분석 결과 ===== */}
       {comparisonResult && (
         <div className="comparison-result">
-          <h2>🔄 변화 비교 <span className="ver">v{comparisonResult.analysisVersion || '4.1'}</span></h2>
+          <h2>🔄 변화 비교 <span className="ver">v{comparisonResult.analysisVersion || '4.2'}</span></h2>
 
           {/* 조건 매칭 */}
           {comparisonResult.photoConditions?.conditionMatch && (
