@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './PhotoGallery.css';
 
+// 환경 변수에서 API URL 가져오기 (배포 환경 대응)
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 const PhotoGallery = () => {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +20,7 @@ const PhotoGallery = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        'http://localhost:3000/api/photos/my-photos',
+        `${API_URL}/api/photos/my-photos`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -27,6 +30,13 @@ const PhotoGallery = () => {
         setPhotos(response.data.photos);
       }
     } catch (err) {
+      // 401 에러 처리 (토큰 만료)
+      if (err.response && err.response.status === 401) {
+        alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        return;
+      }
       setError('사진 목록을 불러올 수 없습니다');
     } finally {
       setLoading(false);
@@ -40,7 +50,7 @@ const PhotoGallery = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `http://localhost:3000/api/photos/${photoId}`,
+        `${API_URL}/api/photos/${photoId}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -50,6 +60,13 @@ const PhotoGallery = () => {
       setSelectedPhoto(null);
       alert('사진이 삭제되었습니다');
     } catch (err) {
+      // 401 에러 처리 (토큰 만료)
+      if (err.response && err.response.status === 401) {
+        alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        return;
+      }
       alert('삭제에 실패했습니다');
     }
   };
