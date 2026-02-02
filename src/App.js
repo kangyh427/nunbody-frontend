@@ -1,81 +1,35 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import PhotoUpload from './PhotoUpload';
-import PhotoGallery from './PhotoGallery';
-import './Dashboard.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './components/Dashboard';
 
-const Dashboard = () => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('upload');
-  const [refreshGallery, setRefreshGallery] = useState(0);
-
-  const handleUploadSuccess = () => {
-    setActiveTab('gallery');
-    setRefreshGallery(prev => prev + 1); // 갤러리 새로고침
-  };
-
-  // 로그아웃 처리
-  const handleLogout = () => {
-    if (window.confirm('로그아웃 하시겠습니까?')) {
-      localStorage.removeItem('token');
-      navigate('/login');
-    }
-  };
-
-  return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <h1>👁️ 눈바디 (NunBody)</h1>
-        <p>AI로 분석하는 나의 몸 변화</p>
-        <button className="btn-logout" onClick={handleLogout}>
-          로그아웃
-        </button>
-      </header>
-
-      <nav className="dashboard-tabs">
-        <button 
-          className={activeTab === 'upload' ? 'tab active' : 'tab'}
-          onClick={() => setActiveTab('upload')}
-        >
-          📸 사진 촬영
-        </button>
-        <button 
-          className={activeTab === 'gallery' ? 'tab active' : 'tab'}
-          onClick={() => setActiveTab('gallery')}
-        >
-          📂 내 사진
-        </button>
-        <button 
-          className={activeTab === 'analysis' ? 'tab active' : 'tab'}
-          onClick={() => setActiveTab('analysis')}
-          disabled
-        >
-          📊 변화 분석 (준비중)
-        </button>
-      </nav>
-
-      <main className="dashboard-content">
-        {activeTab === 'upload' && (
-          <PhotoUpload onUploadSuccess={handleUploadSuccess} />
-        )}
-        {activeTab === 'gallery' && (
-          <PhotoGallery key={refreshGallery} />
-        )}
-        {activeTab === 'analysis' && (
-          <div className="coming-soon">
-            <h2>🚧 AI 변화 분석 기능</h2>
-            <p>곧 출시됩니다!</p>
-            <ul>
-              <li>✅ 이전 사진과 비교</li>
-              <li>✅ 근육량/지방량 변화 추정</li>
-              <li>✅ 부위별 변화 측정</li>
-              <li>✅ 개인 맞춤 운동 조언</li>
-            </ul>
-          </div>
-        )}
-      </main>
-    </div>
-  );
+// 보호된 라우트 컴포넌트 - 로그인 필수
+const PrivateRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  // 토큰이 없으면 로그인 페이지로 리다이렉트
+  return token ? children : <Navigate to="/login" />;
 };
 
-export default Dashboard;
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        {/* 대시보드 접근 보호 */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          } 
+        />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
