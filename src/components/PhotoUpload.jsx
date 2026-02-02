@@ -25,11 +25,13 @@ const PhotoUpload = ({ onUploadSuccess }) => {
     };
   }, [preview]);
 
-  // 컴포넌트 언마운트 시 카메라 확실히 끄기
+  // 컴포넌트 언마운트 시 카메라 확실히 끄기 (ESLint 수정됨)
   useEffect(() => {
+    const videoEl = videoRef.current; // capture stable reference
+    
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      if (videoEl && videoEl.srcObject) {
+        videoEl.srcObject.getTracks().forEach(track => track.stop());
       }
     };
   }, []);
