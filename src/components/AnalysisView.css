@@ -1,242 +1,214 @@
-/* AnalysisView.css - v4.0 */
-.analysis-container { max-width: 900px; margin: 0 auto; padding: 20px; }
+/* AnalysisView.css - v4.1 Compact */
+.analysis-container { max-width: 900px; margin: 0 auto; padding: 16px; }
 
-.mode-selector { display: flex; gap: 10px; margin-bottom: 20px; }
-.mode-btn { flex: 1; padding: 15px 20px; border: 2px solid #e0e0e0; border-radius: 12px; background: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-.mode-btn:hover { border-color: #7c3aed; background: #f5f3ff; }
-.mode-btn.active { border-color: #7c3aed; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
+/* 프로필 */
+.profile-section { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.profile-btn { padding: 8px 16px; border: 1px solid #7c3aed; border-radius: 8px; background: white; color: #7c3aed; font-weight: 600; cursor: pointer; }
+.profile-btn:hover { background: #f5f3ff; }
+.saved-msg { color: #4CAF50; font-weight: 600; }
+.profile-info { color: #666; font-size: 14px; }
 
-.photo-selection { background: #f8f9fa; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-.photo-selection h3 { margin: 0 0 15px 0; color: #333; }
-.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
-.photo-item { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: all 0.3s ease; }
-.photo-item:hover { transform: scale(1.02); border-color: #7c3aed; }
-.photo-item.selected { border-color: #7c3aed; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+/* 모달 */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; }
+.modal-content h3 { margin: 0 0 8px; }
+.modal-desc { color: #666; font-size: 14px; margin-bottom: 16px; }
+.form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.form-group { flex: 1; }
+.form-group label { display: block; font-size: 13px; color: #666; margin-bottom: 4px; }
+.form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+.modal-btns { display: flex; gap: 12px; margin-top: 20px; }
+.btn-cancel { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer; }
+.btn-save { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #7c3aed; color: white; font-weight: 600; cursor: pointer; }
+
+/* 모드 선택 */
+.mode-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+.mode-btn { flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-weight: 600; cursor: pointer; }
+.mode-btn.active { border-color: #7c3aed; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; }
+
+/* 사진 선택 */
+.photo-selection { background: #f8f9fa; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.photo-selection h3 { margin: 0 0 12px; font-size: 16px; }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+.photo-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer; border: 3px solid transparent; }
+.photo-item.selected { border-color: #7c3aed; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
 .photo-item.selected.before { border-color: #3b82f6; }
 .photo-item.selected.after { border-color: #10b981; }
 .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-.photo-date { position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 8px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; text-align: center; }
-.selected-badge { position: absolute; top: 8px; right: 8px; background: #7c3aed; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
-.selected-badge.before { background: #3b82f6; width: auto; padding: 4px 8px; border-radius: 12px; font-size: 10px; }
-.selected-badge.after { background: #10b981; width: auto; padding: 4px 8px; border-radius: 12px; font-size: 10px; }
+.photo-date { position: absolute; bottom: 0; left: 0; right: 0; padding: 4px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; text-align: center; }
+.selected-badge { position: absolute; top: 6px; right: 6px; background: #7c3aed; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.selected-badge.before { background: #3b82f6; }
+.selected-badge.after { background: #10b981; }
+.compare-select { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-col h3 { font-size: 14px; }
+.no-photos { text-align: center; color: #999; padding: 20px; }
 
-.compare-select { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.compare-column h3 { font-size: 14px; }
-.no-photos { text-align: center; color: #666; padding: 20px; }
+/* 버튼 */
+.error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; margin-bottom: 16px; text-align: center; }
+.action-btns { text-align: center; margin-bottom: 20px; }
+.analyze-btn { padding: 14px 40px; font-size: 16px; font-weight: 700; border: none; border-radius: 10px; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+.analyze-btn:disabled { background: #e0e0e0; color: #999; box-shadow: none; }
+.analyze-btn.compare { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
 
-.error-message { background: #ffebee; color: #c62828; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-
-.action-buttons { display: flex; justify-content: center; margin-bottom: 30px; }
-.analyze-btn { padding: 16px 48px; font-size: 18px; font-weight: 700; border: none; border-radius: 12px; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); }
-.analyze-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4); }
-.analyze-btn:disabled { background: #e0e0e0; color: #9e9e9e; cursor: not-allowed; box-shadow: none; }
-.analyze-btn.compare { background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); }
-
+/* 로딩 */
 .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.loading-content { background: white; padding: 40px; border-radius: 20px; text-align: center; }
-.spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #7c3aed; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.loading-sub { color: #666; font-size: 14px; margin-top: 8px; }
+.loading-box { background: white; padding: 32px; border-radius: 16px; text-align: center; }
+.spinner { width: 48px; height: 48px; border: 4px solid #f3f3f3; border-top-color: #7c3aed; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-sub { color: #666; font-size: 13px; margin-top: 8px; }
 
-.analysis-result, .comparison-result { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-.analysis-result h2, .comparison-result h2 { text-align: center; margin-bottom: 24px; color: #333; }
+/* 결과 공통 */
+.analysis-result, .comparison-result { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.analysis-result h2, .comparison-result h2 { text-align: center; margin: 0 0 20px; font-size: 20px; }
+.ver { background: #7c3aed; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 8px; }
 
-.result-section { background: #f8f9fa; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-.result-section h3 { margin: 0 0 16px 0; color: #333; font-size: 18px; }
+/* 섹션 */
+.section { background: #f8f9fa; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.section h3 { margin: 0 0 12px; font-size: 16px; }
 
-/* 사진 조건 분석 */
-.photo-conditions { background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); border: 1px solid #a5b4fc; }
-.conditions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.condition-item { background: white; padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 4px; }
-.condition-label { font-size: 12px; color: #666; font-weight: 500; }
-.condition-value { font-size: 14px; font-weight: 600; color: #333; }
-.condition-detail { margin-top: 12px; padding: 10px; background: white; border-radius: 8px; font-size: 13px; color: #333; }
-.limitations-note { margin-top: 12px; padding: 12px; background: #fff3cd; border-radius: 8px; color: #856404; font-size: 13px; }
+/* Confidence 뱃지 */
+.confidence-badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 6px; }
 
-/* 사진 조건 비교 */
-.photo-conditions-compare { background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); }
-.conditions-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
-.condition-compare-column { background: white; padding: 12px; border-radius: 10px; }
-.condition-compare-column h4 { margin: 0 0 8px 0; font-size: 14px; color: #666; }
-.condition-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.condition-tags .tag { background: #f3f4f6; padding: 4px 10px; border-radius: 20px; font-size: 12px; color: #333; }
+/* 사진 조건 */
+.cond-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.cond-item { background: white; padding: 8px; border-radius: 8px; text-align: center; }
+.cond-label { display: block; font-size: 11px; color: #666; }
+.limit-note { margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 8px; color: #856404; font-size: 13px; }
 
-.comparability-warning { padding: 12px; border-radius: 10px; margin-top: 12px; }
-.comparability-warning.high { background: #d1fae5; border: 1px solid #10b981; }
-.comparability-warning.medium { background: #fef3c7; border: 1px solid #f59e0b; }
-.comparability-warning.low { background: #fee2e2; border: 1px solid #ef4444; }
-.comparability-label { font-weight: 600; display: block; margin-bottom: 4px; }
-.comparability-warning p { margin: 0; font-size: 13px; }
-
-/* 기간 분석 */
-.time-period { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-.period-info { text-align: center; }
-.period-days { font-size: 24px; font-weight: 700; color: #92400e; }
-.period-expectation { margin: 8px 0 0 0; color: #78350f; font-size: 14px; }
-
-/* 근육 가시성 요약 */
-.visibility-summary { background: #f0fdf4; }
-.visibility-grid { display: flex; flex-direction: column; gap: 10px; }
-.visibility-item { padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; gap: 12px; }
-.visibility-item.visible { background: #dcfce7; }
-.visibility-item.partial { background: #fef9c3; }
-.visibility-item.not-visible { background: #fee2e2; }
-.visibility-label { font-weight: 600; font-size: 13px; white-space: nowrap; }
-.visibility-muscles { font-size: 13px; color: #333; }
-
-/* 겉보기 vs 실제 변화 */
-.apparent-vs-real { background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); }
-.avr-grid { display: flex; flex-direction: column; gap: 12px; }
-.avr-item { padding: 14px; border-radius: 10px; background: white; }
-.avr-item h4 { margin: 0 0 8px 0; font-size: 14px; }
-.avr-item.apparent h4 { color: #9333ea; }
-.avr-item.real h4 { color: #059669; }
-.avr-item.uncertain h4 { color: #d97706; }
-.avr-item p { margin: 0; font-size: 14px; color: #333; }
+/* 축척 보정 */
+.calibration { background: #e0e7ff; }
+.cal-grid { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
 /* 점수 카드 */
-.score-card { display: flex; align-items: center; gap: 20px; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); border-radius: 16px; padding: 24px; margin-bottom: 20px; color: white; }
-.score-circle { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); flex-shrink: 0; }
-.score-number { font-size: 36px; font-weight: 700; }
-.score-label { font-size: 14px; }
+.score-card { display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, #7c3aed, #a78bfa); border-radius: 14px; padding: 20px; margin-bottom: 16px; color: white; }
+.score-circle { width: 80px; height: 80px; border-radius: 50%; border: 3px solid white; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); }
+.score-num { font-size: 28px; font-weight: 700; }
+.score-label { font-size: 12px; }
 .score-info { flex: 1; }
-.score-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.score-info h3 { margin: 0 0 8px 0; font-size: 20px; }
-.score-info p { margin: 0; font-size: 14px; opacity: 0.9; }
+.score-info h3 { margin: 0 0 6px; font-size: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.score-info p { margin: 0; font-size: 13px; opacity: 0.9; }
+.bf-est { margin-top: 8px; font-size: 14px; }
 
-/* 측정치/자세 그리드 */
-.measurements-grid, .posture-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.measure-item, .posture-item { background: white; padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 4px; }
-.measure-item .label, .posture-item .label { font-size: 12px; color: #666; }
-.measure-item .value, .posture-item .value { font-size: 16px; font-weight: 600; color: #333; }
-.measurement-confidence { margin-top: 12px; text-align: right; font-size: 13px; color: #666; }
-.posture-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.posture-score { font-weight: 600; color: #7c3aed; }
+/* 질감 분석 */
+.texture { background: #fce7f3; }
+.tex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tex-item { background: white; padding: 10px; border-radius: 8px; text-align: center; }
+.tex-item span:first-child { display: block; font-size: 11px; color: #666; }
+.tex-note { margin-top: 10px; font-size: 13px; color: #333; }
 
-/* 근육 카테고리 */
-.muscle-category { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-.category-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
-.muscle-category h4 { margin: 0; font-size: 16px; color: #333; }
-.category-score { font-size: 14px; color: #666; display: flex; align-items: center; gap: 8px; }
-.muscle-detail-grid { display: flex; flex-direction: column; gap: 12px; }
-.muscle-detail-item { padding: 12px; background: #f8f9fa; border-radius: 10px; transition: all 0.3s ease; }
-.muscle-detail-item.not-visible { background: #f5f5f5; border: 1px dashed #ccc; }
-.muscle-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
-.muscle-name { font-weight: 600; color: #333; font-size: 14px; }
-.muscle-score-area { display: flex; align-items: center; gap: 8px; }
-.muscle-score { font-weight: 700; font-size: 16px; }
-.muscle-score.not-available { color: #9e9e9e; font-size: 13px; font-weight: 500; }
-.bar-container { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
-.bar { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
-.muscle-comment { font-size: 13px; color: #666; margin: 0; line-height: 1.5; }
+/* 측정치 */
+.meas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.meas-item { background: white; padding: 8px; border-radius: 8px; text-align: center; }
+.meas-item span:first-child { display: block; font-size: 11px; color: #666; }
+.meas-note { margin-top: 10px; font-size: 13px; color: #666; }
 
-/* 약한/강점 근육 카드 */
-.weak-muscles-list, .strength-list, .needs-work-list, .top-improved-list { display: flex; flex-direction: column; gap: 12px; }
-.weak-muscle-card, .needs-work-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-.weak-muscle-header { display: flex; align-items: center; padding: 14px; cursor: pointer; transition: background 0.3s ease; }
-.weak-muscle-header:hover { background: #f8f9fa; }
-.rank-badge { width: 32px; height: 32px; background: #7c3aed; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 12px; }
-.weak-muscle-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-.muscle-meta, .strength-meta, .nw-meta, .improved-meta { display: flex; align-items: center; gap: 8px; }
-.muscle-score-badge { color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-.expand-icon { color: #999; font-size: 12px; }
-.weak-muscle-detail { padding: 0 14px 14px; border-top: 1px solid #eee; }
-.weak-muscle-detail .reason, .nw-reason { margin: 12px 0; padding: 10px; background: #fff3cd; border-radius: 8px; font-size: 13px; }
-.weak-muscle-detail h5 { margin: 12px 0 8px; font-size: 14px; color: #333; }
-.exercise-list { display: flex; flex-direction: column; gap: 8px; }
-.exercise-item { background: #f8f9fa; padding: 10px; border-radius: 8px; }
-.exercise-name { font-weight: 600; color: #333; display: block; margin-bottom: 4px; }
-.exercise-detail { display: flex; gap: 12px; font-size: 13px; color: #666; }
-.exercise-detail .tip { margin-top: 6px; font-size: 12px; color: #7c3aed; }
+/* 근육 분석 */
+.muscles { background: white; border: 1px solid #e0e0e0; }
+.muscle-category { margin-bottom: 16px; }
+.muscle-category h4 { margin: 0 0 10px; font-size: 14px; color: #333; }
+.muscle-list { display: flex; flex-direction: column; gap: 8px; }
+.muscle-item { background: #f8f9fa; padding: 10px; border-radius: 8px; }
+.muscle-item.not-visible { background: #f5f5f5; border: 1px dashed #ccc; }
+.muscle-row { display: flex; justify-content: space-between; align-items: center; }
+.muscle-name { font-weight: 600; font-size: 13px; }
+.muscle-score-area { display: flex; align-items: center; gap: 6px; }
+.muscle-score { font-weight: 700; font-size: 14px; }
+.muscle-score.na { color: #999; font-size: 12px; }
+.bar-wrap { height: 6px; background: #e0e0e0; border-radius: 3px; margin: 6px 0; overflow: hidden; }
+.bar { height: 100%; border-radius: 3px; }
+.muscle-detail { font-size: 12px; color: #666; margin-top: 6px; }
 
-.strength-item { background: white; padding: 12px; border-radius: 10px; }
-.strength-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-.strength-name { font-weight: 600; color: #333; }
-.strength-score { font-weight: 700; }
-.strength-detail { margin: 8px 0 0; font-size: 13px; color: #666; }
+/* 약점/강점 */
+.weak-card { background: white; border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.weak-header { display: flex; align-items: center; padding: 12px; cursor: pointer; }
+.weak-header .rank { width: 28px; height: 28px; background: #7c3aed; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; margin-right: 10px; }
+.weak-header .name { flex: 1; font-weight: 600; }
+.weak-header .score { color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+.weak-header .expand { color: #999; }
+.weak-detail { padding: 12px; border-top: 1px solid #eee; }
+.weak-detail .reason { background: #fff3cd; padding: 8px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; }
+.weak-detail .exercise { background: #f8f9fa; padding: 8px; border-radius: 6px; font-size: 13px; margin-top: 6px; }
+.strong-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+.strong-item .name { font-weight: 600; }
+.strong-item .score { font-weight: 700; }
 
 /* 주간 계획 */
-.weekly-plan { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-.day-plan { display: flex; gap: 12px; padding: 10px; background: white; border-radius: 8px; }
-.day-label { font-weight: 700; color: #7c3aed; min-width: 60px; }
-.day-content { color: #333; font-size: 14px; }
-.nutrition-tip, .rest-tip, .photo-tip, .lifestyle-tip, .next-goal { margin: 8px 0 0; padding: 10px; background: white; border-radius: 8px; font-size: 14px; }
+.week-plan { display: flex; flex-direction: column; gap: 6px; }
+.day { display: flex; gap: 10px; padding: 8px; background: white; border-radius: 6px; }
+.day-name { font-weight: 700; color: #7c3aed; min-width: 50px; font-size: 13px; }
+.day-content { font-size: 13px; }
 
-/* 요약/격려/면책 카드 */
-.summary-card { background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-.summary-card h3 { margin: 0 0 12px 0; color: #4338ca; }
-.summary-card p { margin: 0; line-height: 1.7; color: #333; }
-.encouragement-card { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center; }
-.encouragement-card p { margin: 0; font-size: 16px; color: #065f46; line-height: 1.6; }
-.disclaimer-card { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 10px; padding: 14px; margin-top: 20px; }
-.disclaimer-card p { margin: 0; font-size: 13px; color: #666; }
+/* 요약/면책 */
+.summary { background: #e0e7ff; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.summary h3 { margin: 0 0 10px; color: #4338ca; }
+.summary p { margin: 0; line-height: 1.6; }
+.disclaimer { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; font-size: 13px; color: #666; }
+.encourage { background: #d1fae5; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 16px; color: #065f46; font-size: 15px; }
 
-/* 비교 분석 */
-.change-score-card { display: flex; align-items: center; gap: 20px; background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-.change-indicator { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.change-number { font-size: 28px; font-weight: 700; color: white; }
-.change-info { flex: 1; }
-.change-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.change-info h3 { margin: 0 0 8px 0; font-size: 20px; color: #333; }
-.change-info p { margin: 0; color: #666; font-size: 14px; }
+/* ===== 비교 결과 ===== */
+.condition-match { background: #e0e7ff; }
+.match-display { display: flex; align-items: center; gap: 20px; margin-bottom: 12px; }
+.match-circle { width: 70px; height: 70px; border-radius: 50%; border: 4px solid; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; }
+.match-num { font-size: 24px; font-weight: 700; }
+.match-label { font-size: 11px; }
+.match-items { display: flex; gap: 10px; flex-wrap: wrap; }
+.match-items span { padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+.match-items .ok { background: #d1fae5; color: #065f46; }
+.match-items .no { background: #fee2e2; color: #b91c1c; }
+.comp-warning { padding: 10px; border-radius: 8px; }
+.comp-warning.high { background: #d1fae5; }
+.comp-warning.medium { background: #fef3c7; }
+.comp-warning.low { background: #fee2e2; }
+.comp-warning span { font-weight: 600; }
+.comp-warning p { margin: 4px 0 0; font-size: 13px; }
 
-.before-after-scores { display: flex; align-items: center; justify-content: center; gap: 20px; }
-.ba-score { text-align: center; padding: 16px 24px; background: white; border-radius: 12px; }
-.ba-label { display: block; font-size: 14px; color: #666; margin-bottom: 4px; }
-.ba-value { font-size: 28px; font-weight: 700; }
-.ba-score.before .ba-value { color: #3b82f6; }
-.ba-score.after .ba-value { color: #10b981; }
-.ba-arrow { font-size: 24px; color: #999; }
+.time-period { background: #fef3c7; }
+.period-info { text-align: center; }
+.period-info .days { font-size: 28px; font-weight: 700; color: #92400e; }
+.period-info p { margin: 6px 0 0; color: #78350f; font-size: 13px; }
 
-.muscle-changes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-.muscle-change-card { background: white; padding: 14px; border-radius: 12px; transition: all 0.3s ease; }
-.muscle-change-card.not-comparable { background: #f5f5f5; border: 1px dashed #ccc; }
-.mc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-.mc-name { font-weight: 600; font-size: 13px; color: #333; }
-.mc-percent { font-weight: 700; font-size: 14px; }
-.mc-scores { display: flex; align-items: center; gap: 8px; font-size: 15px; margin-bottom: 8px; }
-.mc-before { color: #666; }
-.mc-arrow { color: #999; }
-.mc-after { font-weight: 600; }
-.mc-detail { font-size: 12px; color: #666; margin: 0; line-height: 1.4; }
-.mc-not-visible { margin: 8px 0 0; padding: 6px 10px; background: #fff3cd; border-radius: 6px; font-size: 11px; color: #856404; }
+.avr { background: #fce7f3; }
+.avr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.avr-item { background: white; padding: 12px; border-radius: 8px; }
+.avr-item h4 { margin: 0 0 6px; font-size: 13px; }
+.avr-item.apparent h4 { color: #9333ea; }
+.avr-item.real h4 { color: #059669; }
+.avr-item p { margin: 0; font-size: 13px; }
 
-.improved-card { background: white; padding: 14px; border-radius: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.improved-rank { font-size: 28px; }
-.improved-info { flex: 1; min-width: 120px; }
-.improved-muscle { display: block; font-weight: 600; color: #333; margin-bottom: 4px; }
-.improved-percent { font-weight: 700; }
-.improved-detail { width: 100%; margin: 8px 0 0; font-size: 13px; color: #666; }
-.keep-doing { width: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; }
-.keep-label { font-size: 12px; color: #666; display: block; margin-bottom: 6px; }
-.keep-exercise { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-right: 6px; margin-bottom: 6px; }
+.change-card { display: flex; align-items: center; gap: 16px; background: white; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.change-circle { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.change-num { font-size: 24px; font-weight: 700; color: white; }
+.change-info h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
 
-.nw-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
-.nw-muscle { font-weight: 600; color: #333; }
-.nw-percent { font-weight: 700; }
-.nw-exercises { margin-top: 8px; }
-.nw-ex-label { font-size: 12px; color: #666; display: block; margin-bottom: 8px; }
-.nw-exercise { display: flex; justify-content: space-between; padding: 8px 10px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
-.ex-name { font-weight: 500; }
-.ex-detail { color: #666; }
+.bf-change { background: #f0fdf4; }
+.bf-display { display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap; font-size: 18px; }
+.bf-display .arrow { color: #999; }
 
-.body-comp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; }
-.comp-item { background: white; padding: 14px; border-radius: 10px; text-align: center; }
-.comp-item .comp-label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
-.comp-value-area { display: flex; align-items: center; justify-content: center; gap: 8px; }
-.comp-item .comp-value { font-size: 18px; font-weight: 700; color: #333; }
-.comp-detail { margin: 0; padding: 12px; background: white; border-radius: 8px; font-size: 14px; color: #333; }
+.mc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.mc-card { background: white; padding: 10px; border-radius: 10px; }
+.mc-card.na { background: #f5f5f5; border: 1px dashed #ccc; }
+.mc-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.mc-name { font-weight: 600; font-size: 12px; }
+.mc-pct { font-weight: 700; font-size: 13px; }
+.mc-scores { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.mc-na { font-size: 11px; color: #856404; margin-top: 6px; }
 
-.focus-muscles { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.focus-label { font-size: 14px; color: #666; }
-.focus-tag { background: #7c3aed; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+.top-improved { background: #f0fdf4; }
+.top-card { display: flex; align-items: center; gap: 10px; background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+.top-card .rank { font-size: 20px; }
+.top-card .name { flex: 1; font-weight: 600; }
+.top-card .pct { font-weight: 700; }
+.top-card .tag { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+
+.recommendations .goal { background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+.recommendations .tip { background: #e0e7ff; padding: 10px; border-radius: 8px; font-size: 13px; }
 
 /* 반응형 */
 @media (max-width: 600px) {
   .compare-select { grid-template-columns: 1fr; }
-  .conditions-grid, .measurements-grid, .posture-grid, .body-comp-grid { grid-template-columns: 1fr; }
-  .conditions-compare-grid { grid-template-columns: 1fr; }
-  .score-card { flex-direction: column; text-align: center; }
-  .change-score-card { flex-direction: column; text-align: center; }
-  .muscle-changes-grid { grid-template-columns: 1fr; }
+  .cond-grid { grid-template-columns: repeat(2, 1fr); }
+  .tex-grid, .meas-grid { grid-template-columns: repeat(2, 1fr); }
+  .score-card, .change-card { flex-direction: column; text-align: center; }
+  .avr-grid { grid-template-columns: 1fr; }
+  .mc-grid { grid-template-columns: 1fr 1fr; }
 }
