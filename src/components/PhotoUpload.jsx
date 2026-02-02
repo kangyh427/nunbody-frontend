@@ -1,6 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './PhotoUpload.css';
+
+// 환경 변수에서 API URL 가져오기 (배포 환경 대응)
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const PhotoUpload = ({ onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -13,6 +16,24 @@ const PhotoUpload = ({ onUploadSuccess }) => {
   const videoRef = useRef(null);
   const [cameraActive, setCameraActive] = useState(false);
 
+  // 메모리 누수 방지: 미리보기 URL 정리
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
+  // 컴포넌트 언마운트 시 카메라 확실히 끄기
+  useEffect(() => {
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
   // 파일 선택
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -24,6 +45,11 @@ const PhotoUpload = ({ onUploadSuccess }) => {
       if (file.size > 10 * 1024 * 1024) {
         setError('파일 크기는 10MB 이하여야 합니다');
         return;
+      }
+      
+      // 이전 미리보기 URL 정리
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
       }
       
       setSelectedFile(file);
@@ -49,13 +75,26 @@ const PhotoUpload = ({ onUploadSuccess }) => {
 
   // 사진 촬영
   const capturePhoto = () => {
+    if (!videoRef.current) return;
+    
+    const video = videoRef.current;
     const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+    
+    // 비디오의 실제 해상도로 설정 (모바일 대응)
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
     
     canvas.toBlob((blob) => {
       const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      
+      // 이전 미리보기 URL 정리
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+      
       setSelectedFile(file);
       setPreview(URL.createObjectURL(file));
       stopCamera();
@@ -87,7 +126,7 @@ const PhotoUpload = ({ onUploadSuccess }) => {
 
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:3000/api/photos/upload',
+        `${API_URL}/api/photos/upload`,
         formData,
         {
           headers: {
@@ -99,15 +138,37 @@ const PhotoUpload = ({ onUploadSuccess }) => {
 
       if (response.data.success) {
         alert('사진이 업로드되었습니다!');
+        
+        // 미리보기 URL 정리
+        if (preview && preview.startsWith('blob:')) {
+          URL.revokeObjectURL(preview);
+        }
+        
         setSelectedFile(null);
         setPreview(null);
         if (onUploadSuccess) onUploadSuccess(response.data.photo);
       }
     } catch (err) {
+      // 401 에러 처리 (토큰 만료)
+      if (err.response && err.response.status === 401) {
+        alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        return;
+      }
       setError(err.response?.data?.error || '업로드에 실패했습니다');
     } finally {
       setUploading(false);
     }
+  };
+
+  // 다시 선택
+  const handleReset = () => {
+    if (preview && preview.startsWith('blob:')) {
+      URL.revokeObjectURL(preview);
+    }
+    setPreview(null);
+    setSelectedFile(null);
   };
 
   return (
@@ -162,7 +223,7 @@ const PhotoUpload = ({ onUploadSuccess }) => {
             <button onClick={handleUpload} disabled={uploading} className="btn-upload">
               {uploading ? '업로드 중...' : '✅ 업로드'}
             </button>
-            <button onClick={() => { setPreview(null); setSelectedFile(null); }} className="btn-cancel">
+            <button onClick={handleReset} className="btn-cancel">
               다시 선택
             </button>
           </div>
