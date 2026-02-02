@@ -4,6 +4,28 @@ import './AnalysisView.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
+// 근육명 한글 매핑
+const MUSCLE_NAMES = {
+  shoulders: '어깨 (삼각근)',
+  chest: '가슴 (대흉근)',
+  back: '등 (광배근)',
+  biceps: '이두근',
+  triceps: '삼두근',
+  abs: '복근 (복직근)',
+  obliques: '옆구리 (외복사근)',
+  quads: '앞허벅지 (대퇴사두)',
+  hamstrings: '뒷허벅지 (햄스트링)',
+  glutes: '엉덩이 (둔근)',
+  calves: '종아리 (비복근)'
+};
+
+// 근육 카테고리
+const MUSCLE_CATEGORIES = {
+  upperBody: ['shoulders', 'chest', 'back', 'biceps', 'triceps'],
+  core: ['abs', 'obliques'],
+  lowerBody: ['quads', 'hamstrings', 'glutes', 'calves']
+};
+
 const AnalysisView = () => {
   const [photos, setPhotos] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -12,9 +34,9 @@ const AnalysisView = () => {
   const [comparisonResult, setComparisonResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [mode, setMode] = useState('single'); // 'single' or 'compare'
+  const [mode, setMode] = useState('single');
+  const [expandedMuscle, setExpandedMuscle] = useState(null);
 
-  // 사진 목록 로드
   useEffect(() => {
     fetchPhotos();
   }, []);
@@ -33,7 +55,6 @@ const AnalysisView = () => {
     }
   };
 
-  // 단일 사진 분석
   const handleAnalyze = async () => {
     if (!selectedPhoto) {
       setError('분석할 사진을 선택해주세요');
@@ -63,7 +84,6 @@ const AnalysisView = () => {
     }
   };
 
-  // 두 사진 비교 분석
   const handleCompare = async () => {
     if (!selectedPhoto || !comparePhoto) {
       setError('비교할 사진 2장을 선택해주세요');
@@ -103,14 +123,23 @@ const AnalysisView = () => {
 
   // 점수에 따른 색상
   const getScoreColor = (score) => {
-    if (score >= 80) return '#4CAF50';
-    if (score >= 60) return '#8BC34A';
-    if (score >= 40) return '#FFC107';
+    if (score >= 8) return '#4CAF50';
+    if (score >= 6) return '#8BC34A';
+    if (score >= 4) return '#FFC107';
     return '#FF5722';
   };
 
-  // 변화 점수에 따른 색상
-  const getChangeColor = (score) => {
+  // 변화율에 따른 색상
+  const getChangeColor = (changePercent) => {
+    if (!changePercent) return '#9E9E9E';
+    const num = parseFloat(changePercent);
+    if (num > 0) return '#4CAF50';
+    if (num < 0) return '#FF5722';
+    return '#9E9E9E';
+  };
+
+  // 변화 점수에 따른 색상 (숫자용)
+  const getScoreChangeColor = (score) => {
     if (score > 0) return '#4CAF50';
     if (score < 0) return '#FF5722';
     return '#9E9E9E';
@@ -122,6 +151,20 @@ const AnalysisView = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  // 근육 점수 안전하게 가져오기 (v2 호환)
+  const getMuscleScore = (muscleData) => {
+    if (typeof muscleData === 'number') return muscleData;
+    if (typeof muscleData === 'object' && muscleData?.score) return muscleData.score;
+    if (typeof muscleData === 'object' && muscleData?.overall) return muscleData.overall;
+    return 5;
+  };
+
+  // 근육 상세 정보 안전하게 가져오기
+  const getMuscleDetail = (muscleData) => {
+    if (typeof muscleData === 'object' && muscleData?.detail) return muscleData.detail;
+    return '';
   };
 
   return (
@@ -232,12 +275,12 @@ const AnalysisView = () => {
           <div className="loading-content">
             <div className="spinner"></div>
             <p>🤖 AI가 사진을 분석하고 있습니다...</p>
-            <p className="loading-sub">잠시만 기다려주세요 (약 5-10초)</p>
+            <p className="loading-sub">12개 근육군을 정밀 분석 중 (약 10-15초)</p>
           </div>
         </div>
       )}
 
-      {/* 단일 분석 결과 */}
+      {/* ==================== 단일 분석 결과 (v3.0) ==================== */}
       {analysisResult && (
         <div className="analysis-result">
           <h2>📊 AI 분석 결과</h2>
@@ -246,16 +289,41 @@ const AnalysisView = () => {
           <div className="score-card">
             <div 
               className="score-circle"
-              style={{ borderColor: getScoreColor(analysisResult.overallScore) }}
+              style={{ borderColor: getScoreColor(analysisResult.overallScore / 10) }}
             >
-              <span className="score-number">{analysisResult.overallScore}</span>
+              <span className="score-number">{analysisResult.overallScore || 70}</span>
               <span className="score-label">점</span>
             </div>
             <div className="score-info">
               <h3>{analysisResult.bodyType}</h3>
-              <p>{analysisResult.bodyTypeDescription || analysisResult.summary}</p>
+              <p>{analysisResult.bodyTypeDescription}</p>
             </div>
           </div>
+
+          {/* 추정 신체 치수 */}
+          {analysisResult.estimatedMeasurements && (
+            <div className="result-section">
+              <h3>📐 추정 신체 치수</h3>
+              <div className="measurements-grid">
+                <div className="measure-item">
+                  <span className="label">어깨 너비</span>
+                  <span className="value">{analysisResult.estimatedMeasurements.shoulderWidth}</span>
+                </div>
+                <div className="measure-item">
+                  <span className="label">가슴 둘레</span>
+                  <span className="value">{analysisResult.estimatedMeasurements.chestCircumference || '-'}</span>
+                </div>
+                <div className="measure-item">
+                  <span className="label">허리 둘레</span>
+                  <span className="value">{analysisResult.estimatedMeasurements.waistCircumference || analysisResult.estimatedMeasurements.waistEstimate}</span>
+                </div>
+                <div className="measure-item">
+                  <span className="label">좌우 대칭</span>
+                  <span className="value">{analysisResult.estimatedMeasurements.bodySymmetry}/10</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 자세 분석 */}
           {analysisResult.posture && (
@@ -271,87 +339,231 @@ const AnalysisView = () => {
                   <span className="value">{analysisResult.posture.shoulderBalance}</span>
                 </div>
                 <div className="posture-item">
+                  <span className="label">머리 위치</span>
+                  <span className="value">{analysisResult.posture.headPosition || '-'}</span>
+                </div>
+                <div className="posture-item">
                   <span className="label">자세 점수</span>
-                  <span className="value">{analysisResult.posture.score}점</span>
+                  <span className="value highlight">{analysisResult.posture.score}점</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 근육 분석 */}
+          {/* 세부 근육 분석 (v3.0 신규) */}
           {analysisResult.muscleAnalysis && (
             <div className="result-section">
-              <h3>💪 근육 분석</h3>
-              <div className="muscle-bars">
-                <div className="muscle-item">
-                  <span className="label">상체</span>
-                  <div className="bar-container">
-                    <div 
-                      className="bar" 
-                      style={{ width: `${analysisResult.muscleAnalysis.upperBody * 10}%` }}
-                    ></div>
-                  </div>
-                  <span className="value">{analysisResult.muscleAnalysis.upperBody}/10</span>
+              <h3>💪 세부 근육 분석 (12개 근육군)</h3>
+              
+              {/* 상체 */}
+              <div className="muscle-category">
+                <h4>🏋️ 상체 (Upper Body) - 평균: {getMuscleScore(analysisResult.muscleAnalysis.upperBody)}/10</h4>
+                <div className="muscle-detail-grid">
+                  {analysisResult.muscleAnalysis.upperBody && typeof analysisResult.muscleAnalysis.upperBody === 'object' && 
+                    MUSCLE_CATEGORIES.upperBody.map(muscle => {
+                      const data = analysisResult.muscleAnalysis.upperBody[muscle];
+                      if (!data) return null;
+                      const score = getMuscleScore(data);
+                      return (
+                        <div key={muscle} className="muscle-detail-item">
+                          <div className="muscle-header">
+                            <span className="muscle-name">{MUSCLE_NAMES[muscle]}</span>
+                            <span className="muscle-score" style={{ color: getScoreColor(score) }}>
+                              {score}/10
+                            </span>
+                          </div>
+                          <div className="bar-container">
+                            <div 
+                              className="bar" 
+                              style={{ 
+                                width: `${score * 10}%`,
+                                backgroundColor: getScoreColor(score)
+                              }}
+                            ></div>
+                          </div>
+                          {getMuscleDetail(data) && (
+                            <p className="muscle-comment">{getMuscleDetail(data)}</p>
+                          )}
+                        </div>
+                      );
+                    })
+                  }
                 </div>
-                <div className="muscle-item">
-                  <span className="label">코어</span>
-                  <div className="bar-container">
-                    <div 
-                      className="bar" 
-                      style={{ width: `${analysisResult.muscleAnalysis.core * 10}%` }}
-                    ></div>
-                  </div>
-                  <span className="value">{analysisResult.muscleAnalysis.core}/10</span>
+              </div>
+
+              {/* 코어 */}
+              <div className="muscle-category">
+                <h4>🎯 코어 (Core) - 평균: {getMuscleScore(analysisResult.muscleAnalysis.core)}/10</h4>
+                <div className="muscle-detail-grid">
+                  {analysisResult.muscleAnalysis.core && typeof analysisResult.muscleAnalysis.core === 'object' &&
+                    MUSCLE_CATEGORIES.core.map(muscle => {
+                      const data = analysisResult.muscleAnalysis.core[muscle];
+                      if (!data) return null;
+                      const score = getMuscleScore(data);
+                      return (
+                        <div key={muscle} className="muscle-detail-item">
+                          <div className="muscle-header">
+                            <span className="muscle-name">{MUSCLE_NAMES[muscle]}</span>
+                            <span className="muscle-score" style={{ color: getScoreColor(score) }}>
+                              {score}/10
+                            </span>
+                          </div>
+                          <div className="bar-container">
+                            <div 
+                              className="bar" 
+                              style={{ 
+                                width: `${score * 10}%`,
+                                backgroundColor: getScoreColor(score)
+                              }}
+                            ></div>
+                          </div>
+                          {getMuscleDetail(data) && (
+                            <p className="muscle-comment">{getMuscleDetail(data)}</p>
+                          )}
+                        </div>
+                      );
+                    })
+                  }
                 </div>
-                <div className="muscle-item">
-                  <span className="label">하체</span>
-                  <div className="bar-container">
-                    <div 
-                      className="bar" 
-                      style={{ width: `${analysisResult.muscleAnalysis.lowerBody * 10}%` }}
-                    ></div>
-                  </div>
-                  <span className="value">{analysisResult.muscleAnalysis.lowerBody}/10</span>
+              </div>
+
+              {/* 하체 */}
+              <div className="muscle-category">
+                <h4>🦵 하체 (Lower Body) - 평균: {getMuscleScore(analysisResult.muscleAnalysis.lowerBody)}/10</h4>
+                <div className="muscle-detail-grid">
+                  {analysisResult.muscleAnalysis.lowerBody && typeof analysisResult.muscleAnalysis.lowerBody === 'object' &&
+                    MUSCLE_CATEGORIES.lowerBody.map(muscle => {
+                      const data = analysisResult.muscleAnalysis.lowerBody[muscle];
+                      if (!data) return null;
+                      const score = getMuscleScore(data);
+                      return (
+                        <div key={muscle} className="muscle-detail-item">
+                          <div className="muscle-header">
+                            <span className="muscle-name">{MUSCLE_NAMES[muscle]}</span>
+                            <span className="muscle-score" style={{ color: getScoreColor(score) }}>
+                              {score}/10
+                            </span>
+                          </div>
+                          <div className="bar-container">
+                            <div 
+                              className="bar" 
+                              style={{ 
+                                width: `${score * 10}%`,
+                                backgroundColor: getScoreColor(score)
+                              }}
+                            ></div>
+                          </div>
+                          {getMuscleDetail(data) && (
+                            <p className="muscle-comment">{getMuscleDetail(data)}</p>
+                          )}
+                        </div>
+                      );
+                    })
+                  }
                 </div>
               </div>
             </div>
           )}
 
-          {/* 강점 & 개선점 */}
-          <div className="result-section two-column">
-            <div className="column">
-              <h3>✨ 강점</h3>
-              <ul className="list strengths">
-                {analysisResult.strengths?.map((item, idx) => (
-                  <li key={idx}>✅ {item}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="column">
-              <h3>🎯 개선점</h3>
-              <ul className="list improvements">
-                {analysisResult.improvements?.map((item, idx) => (
-                  <li key={idx}>💡 {item}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* 추천 운동 */}
-          {analysisResult.recommendations && (
+          {/* 약한 근육 TOP 3 & 추천 운동 (v3.0 신규) */}
+          {analysisResult.weakestMuscles && analysisResult.weakestMuscles.length > 0 && (
             <div className="result-section">
-              <h3>🏋️ 추천 운동</h3>
-              <div className="recommendations">
-                {(analysisResult.recommendations.exercises || analysisResult.recommendations)?.map((ex, idx) => (
-                  <span key={idx} className="rec-tag">{ex}</span>
+              <h3>🎯 집중 강화 필요 근육 TOP 3</h3>
+              <div className="weak-muscles-list">
+                {analysisResult.weakestMuscles.map((item, idx) => (
+                  <div key={idx} className="weak-muscle-card">
+                    <div 
+                      className="weak-muscle-header"
+                      onClick={() => setExpandedMuscle(expandedMuscle === idx ? null : idx)}
+                    >
+                      <div className="rank-badge">#{item.rank || idx + 1}</div>
+                      <div className="weak-muscle-info">
+                        <span className="muscle-name">{item.muscle}</span>
+                        <span className="muscle-score-badge" style={{ backgroundColor: getScoreColor(item.score) }}>
+                          {item.score}/10
+                        </span>
+                      </div>
+                      <span className="expand-icon">{expandedMuscle === idx ? '▲' : '▼'}</span>
+                    </div>
+                    
+                    {expandedMuscle === idx && (
+                      <div className="weak-muscle-detail">
+                        {item.reason && <p className="reason">💡 {item.reason}</p>}
+                        <h5>추천 운동:</h5>
+                        <div className="exercise-list">
+                          {item.exercises?.map((ex, exIdx) => (
+                            <div key={exIdx} className="exercise-item">
+                              <span className="exercise-name">
+                                {typeof ex === 'string' ? ex : ex.name}
+                              </span>
+                              {typeof ex === 'object' && (
+                                <div className="exercise-detail">
+                                  <span className="sets">{ex.sets}</span>
+                                  <span className="reps">{ex.reps}</span>
+                                  {ex.tip && <p className="tip">💡 {ex.tip}</p>}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* 강점 근육 */}
+          {analysisResult.strongestMuscles && analysisResult.strongestMuscles.length > 0 && (
+            <div className="result-section">
+              <h3>💪 강점 근육</h3>
+              <div className="strength-list">
+                {analysisResult.strongestMuscles.map((item, idx) => (
+                  <div key={idx} className="strength-item">
+                    <span className="strength-name">✅ {item.muscle}</span>
+                    <span className="strength-score" style={{ color: getScoreColor(item.score) }}>
+                      {item.score}/10
+                    </span>
+                    {item.detail && <p className="strength-detail">{item.detail}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 주간 운동 계획 (v3.0 신규) */}
+          {analysisResult.recommendations?.weeklyPlan && (
+            <div className="result-section">
+              <h3>📅 맞춤 주간 운동 계획</h3>
+              <div className="weekly-plan">
+                {Object.entries(analysisResult.recommendations.weeklyPlan).map(([day, plan]) => (
+                  <div key={day} className="day-plan">
+                    <span className="day-label">{day.toUpperCase()}</span>
+                    <span className="day-content">{plan}</span>
+                  </div>
+                ))}
+              </div>
+              {analysisResult.recommendations.nutritionTip && (
+                <p className="nutrition-tip">🥗 영양 팁: {analysisResult.recommendations.nutritionTip}</p>
+              )}
+              {analysisResult.recommendations.restTip && (
+                <p className="rest-tip">😴 휴식 팁: {analysisResult.recommendations.restTip}</p>
+              )}
+            </div>
+          )}
+
+          {/* 요약 */}
+          {analysisResult.summary && (
+            <div className="summary-card">
+              <h3>📝 종합 평가</h3>
+              <p>{analysisResult.summary}</p>
             </div>
           )}
         </div>
       )}
 
-      {/* 비교 분석 결과 */}
+      {/* ==================== 비교 분석 결과 (v3.0) ==================== */}
       {comparisonResult && (
         <div className="comparison-result">
           <h2>🔄 변화 비교 분석 결과</h2>
@@ -360,7 +572,7 @@ const AnalysisView = () => {
           <div className="change-score-card">
             <div 
               className="change-indicator"
-              style={{ backgroundColor: getChangeColor(comparisonResult.changeScore) }}
+              style={{ backgroundColor: getScoreChangeColor(comparisonResult.changeScore) }}
             >
               <span className="change-number">
                 {comparisonResult.changeScore > 0 ? '+' : ''}{comparisonResult.changeScore}
@@ -372,84 +584,187 @@ const AnalysisView = () => {
             </div>
           </div>
 
-          {/* 상세 변화 */}
-          {comparisonResult.detailedChanges && (
+          {/* Before/After 점수 비교 */}
+          {(comparisonResult.beforeScore || comparisonResult.afterScore) && (
             <div className="result-section">
-              <h3>📈 부위별 변화</h3>
-              <div className="changes-grid">
-                <div className="change-item">
-                  <span className="label">체중</span>
-                  <span className="value">{comparisonResult.detailedChanges.weight?.direction}</span>
+              <h3>📊 전후 점수 비교</h3>
+              <div className="before-after-scores">
+                <div className="ba-score before">
+                  <span className="ba-label">Before</span>
+                  <span className="ba-value">{comparisonResult.beforeScore || '-'}점</span>
                 </div>
-                <div className="change-item">
-                  <span className="label">상체</span>
-                  <span 
-                    className="value"
-                    style={{ color: getChangeColor(comparisonResult.detailedChanges.upperBody?.score || 0) }}
-                  >
-                    {comparisonResult.detailedChanges.upperBody?.score > 0 ? '↑' : 
-                     comparisonResult.detailedChanges.upperBody?.score < 0 ? '↓' : '→'}
-                  </span>
-                </div>
-                <div className="change-item">
-                  <span className="label">코어</span>
-                  <span 
-                    className="value"
-                    style={{ color: getChangeColor(comparisonResult.detailedChanges.core?.score || 0) }}
-                  >
-                    {comparisonResult.detailedChanges.core?.score > 0 ? '↑' : 
-                     comparisonResult.detailedChanges.core?.score < 0 ? '↓' : '→'}
-                  </span>
-                </div>
-                <div className="change-item">
-                  <span className="label">하체</span>
-                  <span 
-                    className="value"
-                    style={{ color: getChangeColor(comparisonResult.detailedChanges.lowerBody?.score || 0) }}
-                  >
-                    {comparisonResult.detailedChanges.lowerBody?.score > 0 ? '↑' : 
-                     comparisonResult.detailedChanges.lowerBody?.score < 0 ? '↓' : '→'}
-                  </span>
+                <div className="ba-arrow">→</div>
+                <div className="ba-score after">
+                  <span className="ba-label">After</span>
+                  <span className="ba-value">{comparisonResult.afterScore || '-'}점</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 긍정적 변화 */}
-          <div className="result-section">
-            <h3>🎉 긍정적 변화</h3>
-            <ul className="list positive">
-              {comparisonResult.positiveChanges?.map((item, idx) => (
-                <li key={idx}>✨ {item}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* 격려 메시지 */}
-          <div className="encouragement-card">
-            <p>💪 {comparisonResult.encouragement}</p>
-          </div>
-
-          {/* 추천사항 */}
-          {comparisonResult.recommendations && (
+          {/* 근육별 변화 상세 (v3.0 신규) */}
+          {comparisonResult.muscleChanges && (
             <div className="result-section">
-              <h3>💡 추천사항</h3>
-              <div className="rec-list">
-                {comparisonResult.recommendations.exercises?.map((ex, idx) => (
-                  <span key={idx} className="rec-tag exercise">{ex}</span>
+              <h3>💪 근육별 변화 상세</h3>
+              <div className="muscle-changes-grid">
+                {Object.entries(comparisonResult.muscleChanges).map(([muscle, data]) => {
+                  if (!data || typeof data !== 'object') return null;
+                  return (
+                    <div key={muscle} className="muscle-change-card">
+                      <div className="mc-header">
+                        <span className="mc-name">{MUSCLE_NAMES[muscle] || muscle}</span>
+                        <span 
+                          className="mc-percent"
+                          style={{ color: getChangeColor(data.changePercent) }}
+                        >
+                          {data.changePercent || '0%'}
+                        </span>
+                      </div>
+                      <div className="mc-scores">
+                        <span className="mc-before">{data.before || '-'}</span>
+                        <span className="mc-arrow">→</span>
+                        <span className="mc-after" style={{ color: getChangeColor(data.changePercent) }}>
+                          {data.after || '-'}
+                        </span>
+                      </div>
+                      {data.detail && <p className="mc-detail">{data.detail}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 가장 성장한 근육 TOP 3 (v3.0 신규) */}
+          {comparisonResult.topImproved && comparisonResult.topImproved.length > 0 && (
+            <div className="result-section">
+              <h3>🏆 가장 성장한 근육 TOP 3</h3>
+              <div className="top-improved-list">
+                {comparisonResult.topImproved.map((item, idx) => (
+                  <div key={idx} className="improved-card">
+                    <div className="improved-rank">🥇🥈🥉".split('')[idx] || `#${idx + 1}`}</div>
+                    <div className="improved-info">
+                      <span className="improved-muscle">{item.muscle}</span>
+                      <span className="improved-percent" style={{ color: '#4CAF50' }}>
+                        {item.changePercent}
+                      </span>
+                    </div>
+                    {item.detail && <p className="improved-detail">{item.detail}</p>}
+                    {item.keepDoingExercises && (
+                      <div className="keep-doing">
+                        <span className="keep-label">계속하면 좋은 운동:</span>
+                        {item.keepDoingExercises.map((ex, exIdx) => (
+                          <span key={exIdx} className="keep-exercise">{ex}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
-              {comparisonResult.recommendations.nutrition && (
-                <p className="rec-text">🥗 {comparisonResult.recommendations.nutrition}</p>
+            </div>
+          )}
+
+          {/* 더 노력 필요한 근육 (v3.0 신규) */}
+          {comparisonResult.needsWork && comparisonResult.needsWork.length > 0 && (
+            <div className="result-section">
+              <h3>🎯 더 집중이 필요한 근육</h3>
+              <div className="needs-work-list">
+                {comparisonResult.needsWork.map((item, idx) => (
+                  <div key={idx} className="needs-work-card">
+                    <div className="nw-header">
+                      <span className="nw-muscle">{item.muscle}</span>
+                      <span className="nw-percent" style={{ color: getChangeColor(item.changePercent) }}>
+                        {item.changePercent}
+                      </span>
+                    </div>
+                    {item.reason && <p className="nw-reason">💡 {item.reason}</p>}
+                    {item.recommendedExercises && (
+                      <div className="nw-exercises">
+                        <span className="nw-ex-label">추천 운동:</span>
+                        {item.recommendedExercises.map((ex, exIdx) => (
+                          <div key={exIdx} className="nw-exercise">
+                            <span className="ex-name">{typeof ex === 'string' ? ex : ex.name}</span>
+                            {typeof ex === 'object' && (
+                              <span className="ex-detail">{ex.sets} × {ex.reps}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 체성분 변화 */}
+          {comparisonResult.bodyComposition && (
+            <div className="result-section">
+              <h3>⚖️ 체성분 변화</h3>
+              <div className="body-comp-grid">
+                <div className="comp-item">
+                  <span className="comp-label">체지방</span>
+                  <span className="comp-value">{comparisonResult.bodyComposition.fatChange}</span>
+                </div>
+                <div className="comp-item">
+                  <span className="comp-label">근육량</span>
+                  <span className="comp-value">{comparisonResult.bodyComposition.muscleChange}</span>
+                </div>
+              </div>
+              {comparisonResult.bodyComposition.detail && (
+                <p className="comp-detail">{comparisonResult.bodyComposition.detail}</p>
+              )}
+            </div>
+          )}
+
+          {/* 격려 메시지 */}
+          {comparisonResult.encouragement && (
+            <div className="encouragement-card">
+              <p>💪 {comparisonResult.encouragement}</p>
+            </div>
+          )}
+
+          {/* 다음 목표 & 주간 계획 */}
+          {comparisonResult.recommendations && (
+            <div className="result-section">
+              <h3>🎯 다음 단계 추천</h3>
+              {comparisonResult.recommendations.nextGoal && (
+                <p className="next-goal">🏁 다음 목표: {comparisonResult.recommendations.nextGoal}</p>
+              )}
+              {comparisonResult.recommendations.focusMuscles && (
+                <div className="focus-muscles">
+                  <span className="focus-label">집중 근육:</span>
+                  {comparisonResult.recommendations.focusMuscles.map((m, idx) => (
+                    <span key={idx} className="focus-tag">{m}</span>
+                  ))}
+                </div>
+              )}
+              {comparisonResult.recommendations.weeklyPlan && (
+                <div className="weekly-plan">
+                  {Object.entries(comparisonResult.recommendations.weeklyPlan).map(([day, plan]) => (
+                    <div key={day} className="day-plan">
+                      <span className="day-label">{day}</span>
+                      <span className="day-content">{plan}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {comparisonResult.recommendations.nutritionTip && (
+                <p className="nutrition-tip">🥗 {comparisonResult.recommendations.nutritionTip}</p>
+              )}
+              {comparisonResult.recommendations.lifestyleTip && (
+                <p className="lifestyle-tip">🌟 {comparisonResult.recommendations.lifestyleTip}</p>
               )}
             </div>
           )}
 
           {/* 요약 */}
-          <div className="summary-card">
-            <h3>📝 분석 요약</h3>
-            <p>{comparisonResult.summary}</p>
-          </div>
+          {comparisonResult.summary && (
+            <div className="summary-card">
+              <h3>📝 분석 요약</h3>
+              <p>{comparisonResult.summary}</p>
+            </div>
+          )}
         </div>
       )}
     </div>
