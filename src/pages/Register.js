@@ -6,7 +6,7 @@ import './Auth.css';
 function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -31,7 +31,7 @@ function Register() {
 
     try {
       await axios.post('https://nunbody-mvp.onrender.com/api/auth/register', {
-        username: formData.username,
+        name: formData.name,
         email: formData.email,
         password: formData.password
       });
@@ -39,7 +39,7 @@ function Register() {
       alert('회원가입 성공! 로그인해주세요.');
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || '회원가입 실패');
+      setError(err.response?.data?.error || err.response?.data?.message || '회원가입 실패');
     } finally {
       setLoading(false);
     }
@@ -53,14 +53,16 @@ function Register() {
         <form onSubmit={handleSubmit}>
           <input
             type="text"
+            name="name"
             placeholder="사용자명"
-            value={formData.username}
-            onChange={(e) => setFormData({...formData, username: e.target.value})}
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
             required
             disabled={loading}
           />
           <input
             type="email"
+            name="email"
             placeholder="이메일"
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -69,6 +71,7 @@ function Register() {
           />
           <input
             type="password"
+            name="password"
             placeholder="비밀번호"
             value={formData.password}
             onChange={(e) => setFormData({...formData, password: e.target.value})}
@@ -77,6 +80,7 @@ function Register() {
           />
           <input
             type="password"
+            name="confirmPassword"
             placeholder="비밀번호 확인"
             value={formData.confirmPassword}
             onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
