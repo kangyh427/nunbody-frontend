@@ -26,6 +26,28 @@ const MUSCLE_CATEGORIES = {
   lowerBody: ['quads', 'hamstrings', 'glutes', 'calves']
 };
 
+// 근육 데이터 안전하게 가져오기 (대소문자, 단수/복수 유연 처리)
+const getMuscleData = (categoryData, muscleKey) => {
+  if (!categoryData || typeof categoryData !== 'object') return null;
+  
+  // 정확한 키로 먼저 시도
+  if (categoryData[muscleKey]) return categoryData[muscleKey];
+  
+  // 소문자 변환 후 시도
+  const lowerKey = muscleKey.toLowerCase();
+  const keys = Object.keys(categoryData);
+  
+  for (const key of keys) {
+    // 대소문자 무시 비교
+    if (key.toLowerCase() === lowerKey) return categoryData[key];
+    // 단수/복수 변형 (shoulders -> shoulder, abs -> ab)
+    if (key.toLowerCase() === lowerKey.replace(/s$/, '')) return categoryData[key];
+    if (key.toLowerCase() + 's' === lowerKey) return categoryData[key];
+  }
+  
+  return null;
+};
+
 const AnalysisView = () => {
   const [photos, setPhotos] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -169,17 +191,17 @@ const AnalysisView = () => {
 
   return (
     <div className="analysis-container">
-      {/* 모드 선택 */}
+      {/* 모드 선택 - 탭 전환 시 기존 결과 유지 */}
       <div className="mode-selector">
         <button 
           className={mode === 'single' ? 'mode-btn active' : 'mode-btn'}
-          onClick={() => { setMode('single'); setComparisonResult(null); }}
+          onClick={() => setMode('single')}
         >
           📷 단일 사진 분석
         </button>
         <button 
           className={mode === 'compare' ? 'mode-btn active' : 'mode-btn'}
-          onClick={() => { setMode('compare'); setAnalysisResult(null); }}
+          onClick={() => setMode('compare')}
         >
           🔄 사진 비교 분석
         </button>
@@ -361,7 +383,7 @@ const AnalysisView = () => {
                 <div className="muscle-detail-grid">
                   {analysisResult.muscleAnalysis.upperBody && typeof analysisResult.muscleAnalysis.upperBody === 'object' && 
                     MUSCLE_CATEGORIES.upperBody.map(muscle => {
-                      const data = analysisResult.muscleAnalysis.upperBody[muscle];
+                      const data = getMuscleData(analysisResult.muscleAnalysis.upperBody, muscle);
                       if (!data) return null;
                       const score = getMuscleScore(data);
                       return (
@@ -397,7 +419,7 @@ const AnalysisView = () => {
                 <div className="muscle-detail-grid">
                   {analysisResult.muscleAnalysis.core && typeof analysisResult.muscleAnalysis.core === 'object' &&
                     MUSCLE_CATEGORIES.core.map(muscle => {
-                      const data = analysisResult.muscleAnalysis.core[muscle];
+                      const data = getMuscleData(analysisResult.muscleAnalysis.core, muscle);
                       if (!data) return null;
                       const score = getMuscleScore(data);
                       return (
@@ -433,7 +455,7 @@ const AnalysisView = () => {
                 <div className="muscle-detail-grid">
                   {analysisResult.muscleAnalysis.lowerBody && typeof analysisResult.muscleAnalysis.lowerBody === 'object' &&
                     MUSCLE_CATEGORIES.lowerBody.map(muscle => {
-                      const data = analysisResult.muscleAnalysis.lowerBody[muscle];
+                      const data = getMuscleData(analysisResult.muscleAnalysis.lowerBody, muscle);
                       if (!data) return null;
                       const score = getMuscleScore(data);
                       return (
