@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PhotoUpload from './PhotoUpload';
 import PhotoGallery from './PhotoGallery';
+import AnalysisView from './AnalysisView';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const handleLogout = () => {
     if (window.confirm('로그아웃 하시겠습니까?')) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       navigate('/login');
     }
   };
@@ -48,9 +50,8 @@ const Dashboard = () => {
         <button 
           className={activeTab === 'analysis' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('analysis')}
-          disabled
         >
-          📊 변화 분석 (준비중)
+          📊 AI 분석
         </button>
       </nav>
 
@@ -62,16 +63,7 @@ const Dashboard = () => {
           <PhotoGallery key={refreshGallery} />
         )}
         {activeTab === 'analysis' && (
-          <div className="coming-soon">
-            <h2>🚧 AI 변화 분석 기능</h2>
-            <p>곧 출시됩니다!</p>
-            <ul>
-              <li>✅ 이전 사진과 비교</li>
-              <li>✅ 근육량/지방량 변화 추정</li>
-              <li>✅ 부위별 변화 측정</li>
-              <li>✅ 개인 맞춤 운동 조언</li>
-            </ul>
-          </div>
+          <AnalysisView />
         )}
       </main>
     </div>
