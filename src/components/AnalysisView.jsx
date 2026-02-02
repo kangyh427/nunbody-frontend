@@ -664,7 +664,7 @@ const AnalysisView = () => {
               <div className="top-improved-list">
                 {comparisonResult.topImproved.map((item, idx) => (
                   <div key={idx} className="improved-card">
-                    <div className="improved-rank">🥇🥈🥉".split('')[idx] || `#${idx + 1}`}</div>
+                    <div className="improved-rank">{['🥇', '🥈', '🥉'][idx] || `#${idx + 1}`}</div>
                     <div className="improved-info">
                       <span className="improved-muscle">{item.muscle}</span>
                       <span className="improved-percent" style={{ color: '#4CAF50' }}>
