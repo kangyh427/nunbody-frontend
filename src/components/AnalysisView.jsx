@@ -413,7 +413,7 @@ const AnalysisView = () => {
         </div>
       )}
 
-      {error && <div className="error-msg">{error}</div>}
+      {error && <div className="error-msg">{String(error)}</div>}
 
       {/* Action buttons */}
       {(mode === 'single' || mode === 'compare') && !showHistoryDetail && (

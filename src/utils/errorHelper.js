@@ -1,26 +1,35 @@
 // Safely extract error message string from API error responses
-// Handles various error shapes: {error: {message: "..."}}, {error: "..."}, {message: "..."}, etc.
-// Always returns a string, never an object
+// Always returns a string, never an object - guaranteed
 export function getErrorMessage(err, fallback = 'An error occurred') {
-  const data = err?.response?.data;
-  if (!data) return fallback;
+  try {
+    const data = err?.response?.data;
+    if (!data) return String(fallback);
+    if (typeof data === 'string') return data;
 
-  // {error: {message: "..."}}
-  if (data.error && typeof data.error === 'object' && typeof data.error.message === 'string') {
-    return data.error.message;
-  }
-  // {error: "string"}
-  if (typeof data.error === 'string') {
-    return data.error;
-  }
-  // {message: "string"}
-  if (typeof data.message === 'string') {
-    return data.message;
-  }
-  // {message: {message: "..."}}
-  if (data.message && typeof data.message === 'object' && typeof data.message.message === 'string') {
-    return data.message.message;
-  }
+    // Try all known error response shapes
+    const candidates = [
+      data?.error?.message,
+      data?.error,
+      data?.message?.message,
+      data?.message,
+    ];
 
-  return fallback;
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.length > 0) {
+        return candidate;
+      }
+    }
+
+    // Last resort: stringify any non-null data
+    if (data.error && typeof data.error === 'object') {
+      return JSON.stringify(data.error);
+    }
+    if (data.message && typeof data.message === 'object') {
+      return JSON.stringify(data.message);
+    }
+
+    return String(fallback);
+  } catch (e) {
+    return String(fallback);
+  }
 }

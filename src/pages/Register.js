@@ -54,7 +54,7 @@ function Register() {
       </button>
       <div className="auth-box">
         <h2>{t('auth.registerTitle')}</h2>
-        {error && <div className="error">{error}</div>}
+        {error && <div className="error">{String(error)}</div>}
         <form onSubmit={handleSubmit}>
           <input
             type="text"

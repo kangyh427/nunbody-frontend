@@ -53,7 +53,7 @@ function Login() {
       <div className="auth-box">
         <h2>{t('auth.loginTitle')}</h2>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="error-message">{String(error)}</div>}
 
         <form onSubmit={handleSubmit}>
           <input

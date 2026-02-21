@@ -322,7 +322,7 @@ const PhotoUpload = ({ onUploadSuccess }) => {
         {t('security.localOnly')}
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="error-message">{String(error)}</div>}
     </div>
   );
 };

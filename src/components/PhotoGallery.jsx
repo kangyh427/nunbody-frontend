@@ -114,7 +114,7 @@ const PhotoGallery = () => {
   }
 
   if (error) {
-    return <div className="error-message">{error}</div>;
+    return <div className="error-message">{String(error)}</div>;
   }
 
   return (
