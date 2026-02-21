@@ -6,6 +6,7 @@ import {
   BarChart, Bar, ResponsiveContainer, Cell
 } from 'recharts';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getErrorMessage } from '../utils/errorHelper';
 import './AnalysisView.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
@@ -106,7 +107,9 @@ const AnalysisView = () => {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/analysis/analyze`, { photoId: selectedPhoto.id }, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data.success) setAnalysisResult(res.data.analysis);
-    } catch (err) { setError(err.response?.data?.error || t('analysis.analysisError')); }
+    } catch (err) {
+      setError(getErrorMessage(err, t('analysis.analysisError')));
+    }
     finally { setLoading(false); }
   };
 
@@ -118,7 +121,9 @@ const AnalysisView = () => {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/analysis/compare`, { photoId1: selectedPhoto.id, photoId2: comparePhoto.id }, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data.success) setComparisonResult(res.data.comparison);
-    } catch (err) { setError(err.response?.data?.error || t('analysis.compareError')); }
+    } catch (err) {
+      setError(getErrorMessage(err, t('analysis.compareError')));
+    }
     finally { setLoading(false); }
   };
 

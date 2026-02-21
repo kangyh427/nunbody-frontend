@@ -25,7 +25,9 @@ export const LanguageProvider = ({ children }) => {
     for (const key of keys) {
       value = value?.[key];
     }
-    return value || path;
+    if (value === undefined || value === null) return path;
+    if (typeof value === 'object') return path;
+    return String(value);
   }, [language]);
 
   return (

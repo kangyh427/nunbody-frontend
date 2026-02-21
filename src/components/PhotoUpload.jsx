@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getErrorMessage } from '../utils/errorHelper';
 import { savePhotoLocal, fileToBlob } from '../utils/localDB';
 import './PhotoUpload.css';
 
@@ -199,7 +200,7 @@ const PhotoUpload = ({ onUploadSuccess }) => {
         window.location.href = '/login';
         return;
       }
-      setError(err.response?.data?.error || t('upload.uploadFailed'));
+      setError(getErrorMessage(err, t('upload.uploadFailed')));
     } finally {
       setUploading(false);
       setUploadProgress(0);
