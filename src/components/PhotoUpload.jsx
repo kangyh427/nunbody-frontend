@@ -199,7 +199,16 @@ const PhotoUpload = ({ onUploadSuccess }) => {
         window.location.href = '/login';
         return;
       }
-      setError(err.response?.data?.error || t('upload.uploadFailed'));
+      const errData = err.response?.data;
+      if (errData?.error?.message) {
+        setError(errData.error.message);
+      } else if (typeof errData?.error === 'string') {
+        setError(errData.error);
+      } else if (errData?.message) {
+        setError(errData.message);
+      } else {
+        setError(t('upload.uploadFailed'));
+      }
     } finally {
       setUploading(false);
       setUploadProgress(0);

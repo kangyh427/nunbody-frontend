@@ -106,7 +106,10 @@ const AnalysisView = () => {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/analysis/analyze`, { photoId: selectedPhoto.id }, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data.success) setAnalysisResult(res.data.analysis);
-    } catch (err) { setError(err.response?.data?.error || t('analysis.analysisError')); }
+    } catch (err) {
+      const errMsg = err.response?.data?.error;
+      setError(typeof errMsg === 'string' ? errMsg : errMsg?.message || t('analysis.analysisError'));
+    }
     finally { setLoading(false); }
   };
 
@@ -118,7 +121,10 @@ const AnalysisView = () => {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/analysis/compare`, { photoId1: selectedPhoto.id, photoId2: comparePhoto.id }, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data.success) setComparisonResult(res.data.comparison);
-    } catch (err) { setError(err.response?.data?.error || t('analysis.compareError')); }
+    } catch (err) {
+      const errMsg = err.response?.data?.error;
+      setError(typeof errMsg === 'string' ? errMsg : errMsg?.message || t('analysis.compareError'));
+    }
     finally { setLoading(false); }
   };
 

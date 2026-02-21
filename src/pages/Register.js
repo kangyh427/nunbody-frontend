@@ -40,7 +40,15 @@ function Register() {
       alert(t('auth.registerSuccess'));
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.error || err.response?.data?.message || t('auth.registerFailed'));
+      if (err.response?.data?.error?.message) {
+        setError(err.response.data.error.message);
+      } else if (typeof err.response?.data?.error === 'string') {
+        setError(err.response.data.error);
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError(t('auth.registerFailed'));
+      }
     } finally {
       setLoading(false);
     }
