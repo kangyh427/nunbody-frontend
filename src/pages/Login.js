@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getErrorMessage } from '../utils/errorHelper';
 import './Auth.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
@@ -38,13 +39,7 @@ function Login() {
       }
     } catch (err) {
       console.error('Login error:', err);
-      if (err.response?.data?.error?.message) {
-        setError(err.response.data.error.message);
-      } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError(t('auth.loginFailed'));
-      }
+      setError(getErrorMessage(err, t('auth.loginFailed')));
     } finally {
       setLoading(false);
     }

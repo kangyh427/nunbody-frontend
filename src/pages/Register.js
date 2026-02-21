@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getErrorMessage } from '../utils/errorHelper';
 import './Auth.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
@@ -40,15 +41,7 @@ function Register() {
       alert(t('auth.registerSuccess'));
       navigate('/login');
     } catch (err) {
-      if (err.response?.data?.error?.message) {
-        setError(err.response.data.error.message);
-      } else if (typeof err.response?.data?.error === 'string') {
-        setError(err.response.data.error);
-      } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError(t('auth.registerFailed'));
-      }
+      setError(getErrorMessage(err, t('auth.registerFailed')));
     } finally {
       setLoading(false);
     }
