@@ -1,151 +1,54 @@
-.photo-upload-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
+.photo-upload-container { max-width: 600px; margin: 0 auto; padding: 24px; background: white; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.photo-upload-container h2 { text-align: center; margin-bottom: 8px; color: #333; font-size: 20px; }
+.upload-desc { text-align: center; color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
 
-.photo-upload-container h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
+.body-part-selector { margin-bottom: 20px; text-align: center; }
+.body-part-selector label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+.body-part-options { display: flex; gap: 8px; justify-content: center; }
+.body-part-btn { padding: 10px 20px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.body-part-btn.active { border-color: #7c3aed; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; }
 
-.body-part-selector {
-  margin-bottom: 20px;
-  text-align: center;
-}
+.upload-options { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+.btn-camera, .btn-file, .btn-upload, .btn-capture, .btn-cancel { padding: 12px 24px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.btn-camera { background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; }
+.btn-camera:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3); }
+.btn-file { background: linear-gradient(135deg, #2196F3, #42A5F5); color: white; }
+.btn-file:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3); }
+.btn-upload { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; flex: 1; }
+.btn-upload:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+.btn-upload:disabled { background: #e0e0e0; color: #999; cursor: not-allowed; }
+.btn-capture { background: linear-gradient(135deg, #f44336, #ef5350); color: white; flex: 1; }
+.btn-cancel { background: #f5f5f5; color: #666; border: 1px solid #e0e0e0; flex: 1; }
 
-.body-part-selector label {
-  margin-right: 10px;
-  font-weight: bold;
-}
+.camera-view { margin: 20px 0; }
+.camera-view video { width: 100%; max-height: 400px; border-radius: 12px; background: #000; }
+.camera-controls { display: flex; gap: 10px; margin-top: 10px; }
 
-.body-part-selector select {
-  padding: 8px 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 16px;
-}
+/* Multi preview */
+.multi-preview-section { margin: 20px 0; }
+.preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.photo-count { font-weight: 700; color: #7c3aed; font-size: 16px; }
+.btn-add-more { padding: 8px 16px; border: 2px dashed #7c3aed; border-radius: 8px; background: #f5f3ff; color: #7c3aed; font-weight: 600; cursor: pointer; font-size: 13px; }
+.btn-add-more:hover { background: #ede9fe; }
 
-.upload-options {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin: 20px 0;
-}
+.multi-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.preview-item { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; border: 2px solid #e0e0e0; }
+.preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.remove-btn { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(244, 67, 54, 0.9); color: white; border: none; font-size: 16px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.preview-number { position: absolute; bottom: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(124, 58, 237, 0.9); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.preview-controls { display: flex; gap: 10px; }
 
-.btn-camera, .btn-file, .btn-upload, .btn-capture, .btn-cancel {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
+.upload-progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; margin-top: 12px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(135deg, #7c3aed, #a78bfa); border-radius: 3px; transition: width 0.3s; }
 
-.btn-camera {
-  background: #4CAF50;
-  color: white;
-}
+.privacy-notice { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 20px; padding: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; font-size: 13px; color: #16a34a; }
+.lock-icon { font-size: 16px; }
 
-.btn-camera:hover {
-  background: #45a049;
-}
+.error-message { background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-top: 12px; text-align: center; font-size: 14px; }
 
-.btn-file {
-  background: #2196F3;
-  color: white;
-}
-
-.btn-file:hover {
-  background: #0b7dda;
-}
-
-.btn-upload {
-  background: #FF9800;
-  color: white;
-  flex: 1;
-}
-
-.btn-upload:hover:not(:disabled) {
-  background: #e68900;
-}
-
-.btn-upload:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.btn-capture {
-  background: #f44336;
-  color: white;
-  flex: 1;
-}
-
-.btn-cancel {
-  background: #9E9E9E;
-  color: white;
-  flex: 1;
-}
-
-.camera-view {
-  margin: 20px 0;
-}
-
-.camera-view video {
-  width: 100%;
-  max-height: 400px;
-  border-radius: 8px;
-  background: #000;
-}
-
-.camera-controls {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.preview-section {
-  margin: 20px 0;
-}
-
-.preview-section img {
-  width: 100%;
-  max-height: 400px;
-  object-fit: contain;
-  border-radius: 8px;
-  border: 2px solid #ddd;
-}
-
-.preview-controls {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.error-message {
-  background: #ffebee;
-  color: #c62828;
-  padding: 12px;
-  border-radius: 6px;
-  margin-top: 10px;
-  text-align: center;
-}
-
-/* 모바일 최적화 */
 @media (max-width: 600px) {
-  .photo-upload-container {
-    padding: 15px;
-  }
-  
-  .upload-options {
-    flex-direction: column;
-  }
-  
-  .btn-camera, .btn-file {
-    width: 100%;
-  }
+  .photo-upload-container { padding: 16px; }
+  .upload-options { flex-direction: column; }
+  .btn-camera, .btn-file { width: 100%; }
+  .multi-preview-grid { grid-template-columns: repeat(3, 1fr); }
 }

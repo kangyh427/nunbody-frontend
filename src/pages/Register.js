@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useLanguage } from '../i18n/LanguageContext';
 import './Auth.css';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 function Register() {
   const navigate = useNavigate();
+  const { t, language, toggleLanguage } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,30 +20,27 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (loading) return;
-    
     setError('');
 
-    // 비밀번호 확인
     if (formData.password !== formData.confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.');
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
     setLoading(true);
 
     try {
-      await axios.post('https://nunbody-mvp.onrender.com/api/auth/register', {
+      await axios.post(`${API_URL}/api/auth/register`, {
         name: formData.name,
         email: formData.email,
         password: formData.password
       });
-      
-      alert('회원가입 성공! 로그인해주세요.');
+
+      alert(t('auth.registerSuccess'));
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.error || err.response?.data?.message || '회원가입 실패');
+      setError(err.response?.data?.error || err.response?.data?.message || t('auth.registerFailed'));
     } finally {
       setLoading(false);
     }
@@ -47,14 +48,17 @@ function Register() {
 
   return (
     <div className="auth-container">
+      <button className="lang-toggle-auth" onClick={toggleLanguage}>
+        {language === 'ko' ? 'EN' : 'KO'}
+      </button>
       <div className="auth-box">
-        <h2>눈바디 회원가입</h2>
+        <h2>{t('auth.registerTitle')}</h2>
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <input
             type="text"
             name="name"
-            placeholder="사용자명"
+            placeholder={t('auth.username')}
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
             required
@@ -63,7 +67,7 @@ function Register() {
           <input
             type="email"
             name="email"
-            placeholder="이메일"
+            placeholder={t('auth.email')}
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
@@ -72,7 +76,7 @@ function Register() {
           <input
             type="password"
             name="password"
-            placeholder="비밀번호"
+            placeholder={t('auth.password')}
             value={formData.password}
             onChange={(e) => setFormData({...formData, password: e.target.value})}
             required
@@ -81,17 +85,17 @@ function Register() {
           <input
             type="password"
             name="confirmPassword"
-            placeholder="비밀번호 확인"
+            placeholder={t('auth.confirmPassword')}
             value={formData.confirmPassword}
             onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
             required
             disabled={loading}
           />
           <button type="submit" disabled={loading}>
-            {loading ? '처리중...' : '회원가입'}
+            {loading ? t('auth.registerLoading') : t('auth.register')}
           </button>
         </form>
-        <p>이미 계정이 있으신가요? <Link to="/login">로그인</Link></p>
+        <p>{t('auth.hasAccount')} <Link to="/login">{t('auth.login')}</Link></p>
       </div>
     </div>
   );
