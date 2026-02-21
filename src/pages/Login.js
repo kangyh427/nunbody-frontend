@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useLanguage } from '../i18n/LanguageContext';
 import './Auth.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
@@ -11,6 +12,7 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t, language, toggleLanguage } = useLanguage();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,18 +25,16 @@ function Login() {
         password
       });
 
-      // 수정: response.data.data 경로로 변경
       if (response.data.data?.token) {
         localStorage.setItem('token', response.data.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.data.user));
         navigate('/dashboard');
       } else if (response.data.token) {
-        // 기존 형식도 지원 (호환성)
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         navigate('/dashboard');
       } else {
-        setError('로그인 응답 형식이 올바르지 않습니다.');
+        setError(t('auth.loginResponseError'));
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -43,7 +43,7 @@ function Login() {
       } else if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else {
-        setError('로그인에 실패했습니다. 다시 시도해주세요.');
+        setError(t('auth.loginFailed'));
       }
     } finally {
       setLoading(false);
@@ -52,41 +52,42 @@ function Login() {
 
   return (
     <div className="auth-container">
+      <button className="lang-toggle-auth" onClick={toggleLanguage}>
+        {language === 'ko' ? 'EN' : 'KO'}
+      </button>
       <div className="auth-box">
-        <h2>눈바디 로그인</h2>
-        
+        <h2>{t('auth.loginTitle')}</h2>
+
         {error && <div className="error-message">{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <input
             type="email"
             id="email"
             name="email"
-            placeholder="이메일"
+            placeholder={t('auth.email')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
           />
-          
           <input
             type="password"
             id="password"
             name="password"
-            placeholder="비밀번호"
+            placeholder={t('auth.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
           />
-          
           <button type="submit" disabled={loading}>
-            {loading ? '로그인 중...' : '로그인'}
+            {loading ? t('auth.loginLoading') : t('auth.login')}
           </button>
         </form>
-        
+
         <p className="auth-link">
-          계정이 없으신가요? <Link to="/register">회원가입</Link>
+          {t('auth.noAccount')} <Link to="/register">{t('auth.register')}</Link>
         </p>
       </div>
     </div>

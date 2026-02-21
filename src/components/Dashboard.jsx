@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 import PhotoUpload from './PhotoUpload';
 import PhotoGallery from './PhotoGallery';
 import AnalysisView from './AnalysisView';
@@ -7,17 +8,17 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t, language, toggleLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState('upload');
   const [refreshGallery, setRefreshGallery] = useState(0);
 
   const handleUploadSuccess = () => {
     setActiveTab('gallery');
-    setRefreshGallery(prev => prev + 1); // 갤러리 새로고침
+    setRefreshGallery(prev => prev + 1);
   };
 
-  // 로그아웃 처리
   const handleLogout = () => {
-    if (window.confirm('로그아웃 하시겠습니까?')) {
+    if (window.confirm(t('auth.logoutConfirm'))) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       navigate('/login');
@@ -27,31 +28,39 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
-        <h1>👁️ 눈바디 (NunBody)</h1>
-        <p>AI로 분석하는 나의 몸 변화</p>
-        <button className="btn-logout" onClick={handleLogout}>
-          로그아웃
-        </button>
+        <div className="header-top-row">
+          <button className="lang-toggle" onClick={toggleLanguage}>
+            {language === 'ko' ? 'EN' : 'KO'}
+          </button>
+          <button className="btn-logout" onClick={handleLogout}>
+            {t('auth.logout')}
+          </button>
+        </div>
+        <h1>{t('common.appName')}</h1>
+        <p>{t('common.appSlogan')}</p>
+        <div className="privacy-badge">
+          <span className="privacy-icon">&#128274;</span> {t('security.localOnly')}
+        </div>
       </header>
 
       <nav className="dashboard-tabs">
-        <button 
+        <button
           className={activeTab === 'upload' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('upload')}
         >
-          📸 사진 촬영
+          {t('dashboard.tabUpload')}
         </button>
-        <button 
+        <button
           className={activeTab === 'gallery' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('gallery')}
         >
-          📂 내 사진
+          {t('dashboard.tabGallery')}
         </button>
-        <button 
+        <button
           className={activeTab === 'analysis' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('analysis')}
         >
-          📊 AI 분석
+          {t('dashboard.tabAnalysis')}
         </button>
       </nav>
 

@@ -1,35 +1,41 @@
-/* ==================== Dashboard 전체 레이아웃 ==================== */
-.dashboard-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
+.dashboard-container { min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
 
-/* ==================== 헤더 ==================== */
-.dashboard-header {
-  text-align: center;
-  padding: 30px 20px 20px;
+.dashboard-header { text-align: center; padding: 30px 20px 20px; color: white; position: relative; }
+.header-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+
+.lang-toggle {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
   color: white;
-  position: relative;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(5px);
 }
+.lang-toggle:hover { background: rgba(255, 255, 255, 0.3); }
 
-.dashboard-header h1 {
-  margin: 0 0 8px;
-  font-size: 32px;
-  font-weight: bold;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+.dashboard-header h1 { margin: 0 0 8px; font-size: 32px; font-weight: bold; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); }
+.dashboard-header p { margin: 0; font-size: 16px; opacity: 0.9; }
+
+.privacy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
 }
+.privacy-icon { font-size: 14px; }
 
-.dashboard-header p {
-  margin: 0;
-  font-size: 16px;
-  opacity: 0.9;
-}
-
-/* 로그아웃 버튼 */
 .btn-logout {
-  position: absolute;
-  top: 20px;
-  right: 20px;
   padding: 8px 16px;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -40,105 +46,25 @@
   transition: all 0.3s;
   backdrop-filter: blur(5px);
 }
+.btn-logout:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-1px); }
 
-.btn-logout:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-}
+.dashboard-tabs { display: flex; justify-content: center; gap: 10px; padding: 0 20px 20px; flex-wrap: wrap; }
+.tab { padding: 12px 24px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 25px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px); }
+.tab:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-2px); }
+.tab.active { background: white; color: #667eea; border-color: white; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
 
-/* ==================== 탭 네비게이션 ==================== */
-.dashboard-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 20px 20px;
-  flex-wrap: wrap;
-}
+.dashboard-content { background: #f5f7fa; border-radius: 30px 30px 0 0; min-height: calc(100vh - 200px); padding: 30px 20px; }
 
-.tab {
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 25px;
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-  backdrop-filter: blur(5px);
-}
-
-.tab:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-.tab.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* ==================== 메인 콘텐츠 영역 ==================== */
-.dashboard-content {
-  background: #f5f7fa;
-  border-radius: 30px 30px 0 0;
-  min-height: calc(100vh - 200px);
-  padding: 30px 20px;
-}
-
-/* ==================== 반응형 ==================== */
 @media (max-width: 768px) {
-  .dashboard-header {
-    padding: 20px 15px 15px;
-  }
-
-  .dashboard-header h1 {
-    font-size: 24px;
-  }
-
-  .dashboard-header p {
-    font-size: 14px;
-  }
-
-  .btn-logout {
-    position: static;
-    display: block;
-    margin: 15px auto 0;
-    width: fit-content;
-  }
-
-  .dashboard-tabs {
-    padding: 0 15px 15px;
-    gap: 8px;
-  }
-
-  .tab {
-    padding: 10px 16px;
-    font-size: 13px;
-    flex: 1;
-    min-width: 0;
-    text-align: center;
-  }
-
-  .dashboard-content {
-    border-radius: 20px 20px 0 0;
-    padding: 20px 15px;
-    min-height: calc(100vh - 180px);
-  }
+  .dashboard-header { padding: 20px 15px 15px; }
+  .dashboard-header h1 { font-size: 24px; }
+  .dashboard-header p { font-size: 14px; }
+  .dashboard-tabs { padding: 0 15px 15px; gap: 8px; }
+  .tab { padding: 10px 16px; font-size: 13px; flex: 1; min-width: 0; text-align: center; }
+  .dashboard-content { border-radius: 20px 20px 0 0; padding: 20px 15px; min-height: calc(100vh - 180px); }
 }
-
 @media (max-width: 480px) {
-  .dashboard-header h1 {
-    font-size: 20px;
-  }
-
-  .dashboard-tabs {
-    flex-direction: column;
-  }
-
-  .tab {
-    width: 100%;
-  }
+  .dashboard-header h1 { font-size: 20px; }
+  .dashboard-tabs { flex-direction: column; }
+  .tab { width: 100%; }
 }

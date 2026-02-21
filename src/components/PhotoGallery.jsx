@@ -1,100 +1,116 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useLanguage } from '../i18n/LanguageContext';
+import { getAllPhotos, deletePhotoLocal } from '../utils/localDB';
 import './PhotoGallery.css';
 
-// 환경 변수에서 API URL 가져오기 (배포 환경 대응)
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const PhotoGallery = () => {
+  const { t, language } = useLanguage();
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
-  // 사진 목록 불러오기
-  useEffect(() => {
-    fetchPhotos();
-  }, []);
-
-  const fetchPhotos = async () => {
+  const fetchPhotos = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
         `${API_URL}/api/photos/my-photos`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+        { headers: { 'Authorization': `Bearer ${token}` } }
       );
-      
+
+      let serverPhotos = [];
       if (response.data.success) {
-        setPhotos(response.data.photos);
+        serverPhotos = response.data.photos.map(p => ({ ...p, source: 'server' }));
       }
+
+      // Also fetch local photos from IndexedDB
+      let localPhotos = [];
+      try {
+        const localData = await getAllPhotos();
+        localPhotos = localData.map(p => ({
+          id: `local-${p.id}`,
+          localId: p.id,
+          photo_url: p.photo_url,
+          body_part: p.bodyPart,
+          taken_at: p.takenAt,
+          session_id: p.sessionId,
+          source: 'local',
+        }));
+      } catch (localErr) {
+        console.warn('Local DB read failed:', localErr);
+      }
+
+      // Merge and sort by date
+      const allPhotos = [...serverPhotos, ...localPhotos]
+        .sort((a, b) => new Date(b.taken_at) - new Date(a.taken_at));
+
+      setPhotos(allPhotos);
     } catch (err) {
-      // 401 에러 처리 (토큰 만료)
       if (err.response && err.response.status === 401) {
-        alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        alert(t('auth.sessionExpired'));
         localStorage.removeItem('token');
         window.location.href = '/login';
         return;
       }
-      setError('사진 목록을 불러올 수 없습니다');
+      setError(t('gallery.loadFailed'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  // 사진 삭제
-  const deletePhoto = async (photoId) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
+  useEffect(() => {
+    fetchPhotos();
+  }, [fetchPhotos]);
+
+  const deletePhoto = async (photo) => {
+    if (!window.confirm(t('gallery.deleteConfirm'))) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${API_URL}/api/photos/${photoId}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
-      
-      setPhotos(photos.filter(p => p.id !== photoId));
+      if (photo.source === 'local') {
+        await deletePhotoLocal(photo.localId);
+      } else {
+        const token = localStorage.getItem('token');
+        await axios.delete(
+          `${API_URL}/api/photos/${photo.id}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+      }
+
+      setPhotos(photos.filter(p => p.id !== photo.id));
       setSelectedPhoto(null);
-      alert('사진이 삭제되었습니다');
+      alert(t('gallery.deleted'));
     } catch (err) {
-      // 401 에러 처리 (토큰 만료)
       if (err.response && err.response.status === 401) {
-        alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        alert(t('auth.sessionExpired'));
         localStorage.removeItem('token');
         window.location.href = '/login';
         return;
       }
-      alert('삭제에 실패했습니다');
+      alert(t('gallery.deleteFailed'));
     }
   };
 
-  // 날짜 포맷팅
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', { 
-      year: 'numeric', 
-      month: 'long', 
+    const locale = language === 'ko' ? 'ko-KR' : 'en-US';
+    return date.toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  // 부위 한글 변환
   const getBodyPartText = (bodyPart) => {
-    const parts = {
-      'full': '전신',
-      'upper': '상체',
-      'lower': '하체'
-    };
-    return parts[bodyPart] || bodyPart;
+    return t(`upload.${bodyPart}`) || bodyPart;
   };
 
   if (loading) {
-    return <div className="loading">사진을 불러오는 중...</div>;
+    return <div className="loading">{t('common.loading')}</div>;
   }
 
   if (error) {
@@ -103,53 +119,65 @@ const PhotoGallery = () => {
 
   return (
     <div className="photo-gallery-container">
-      <h2>📂 내 사진 ({photos.length}장)</h2>
+      <h2>{t('gallery.title')} ({t('gallery.photoCount').replace('{count}', photos.length)})</h2>
 
       {photos.length === 0 ? (
         <div className="empty-state">
-          <p>아직 업로드한 사진이 없습니다</p>
-          <p>첫 번째 사진을 촬영해보세요! 📸</p>
+          <p>{t('gallery.empty')}</p>
+          <p>{t('gallery.emptyHint')}</p>
         </div>
       ) : (
         <div className="photo-grid">
           {photos.map((photo) => (
-            <div 
-              key={photo.id} 
+            <div
+              key={photo.id}
               className="photo-card"
               onClick={() => setSelectedPhoto(photo)}
             >
-              <img src={photo.photo_url} alt={`${photo.body_part} 사진`} />
+              <img src={photo.photo_url} alt={photo.body_part} />
               <div className="photo-info">
                 <span className="body-part-badge">{getBodyPartText(photo.body_part)}</span>
                 <span className="photo-date">{formatDate(photo.taken_at)}</span>
               </div>
+              {photo.source === 'local' && (
+                <div className="local-badge">
+                  <span>&#128274;</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* 사진 상세 모달 */}
+      {/* Photo detail modal */}
       {selectedPhoto && (
         <div className="modal-overlay" onClick={() => setSelectedPhoto(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelectedPhoto(null)}>✕</button>
-            <img src={selectedPhoto.photo_url} alt="상세 사진" />
+            <button className="modal-close" onClick={() => setSelectedPhoto(null)}>&times;</button>
+            <img src={selectedPhoto.photo_url} alt="" />
             <div className="modal-info">
-              <h3>{getBodyPartText(selectedPhoto.body_part)} 사진</h3>
-              <p>촬영일: {formatDate(selectedPhoto.taken_at)}</p>
+              <h3>{t('gallery.detailTitle').replace('{bodyPart}', getBodyPartText(selectedPhoto.body_part))}</h3>
+              <p>{t('gallery.takenAt')} {formatDate(selectedPhoto.taken_at)}</p>
+              {selectedPhoto.source === 'local' && (
+                <p className="local-notice">
+                  <span>&#128274;</span> {t('gallery.storedLocally')}
+                </p>
+              )}
               <div className="modal-actions">
-                <button 
-                  className="btn-delete" 
-                  onClick={() => deletePhoto(selectedPhoto.id)}
+                <button
+                  className="btn-delete"
+                  onClick={() => deletePhoto(selectedPhoto)}
                 >
-                  🗑️ 삭제
+                  {t('common.delete')}
                 </button>
-                <button 
-                  className="btn-download"
-                  onClick={() => window.open(selectedPhoto.photo_url, '_blank')}
-                >
-                  ⬇️ 다운로드
-                </button>
+                {selectedPhoto.source === 'server' && (
+                  <button
+                    className="btn-download"
+                    onClick={() => window.open(selectedPhoto.photo_url, '_blank')}
+                  >
+                    {t('common.download')}
+                  </button>
+                )}
               </div>
             </div>
           </div>
