@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { useLanguage } from '../i18n/LanguageContext';
-import { getErrorMessage } from '../utils/errorHelper';
 import './Auth.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 function Register() {
   const navigate = useNavigate();
@@ -32,7 +29,7 @@ function Register() {
     setLoading(true);
 
     try {
-      await axios.post(`${API_URL}/api/auth/register`, {
+      await api.post('/api/auth/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password
@@ -41,7 +38,8 @@ function Register() {
       alert(t('auth.registerSuccess'));
       navigate('/login');
     } catch (err) {
-      setError(getErrorMessage(err, t('auth.registerFailed')));
+      // err.response.data.message is always a string (normalized by interceptor)
+      setError(err.response?.data?.message || t('auth.registerFailed'));
     } finally {
       setLoading(false);
     }

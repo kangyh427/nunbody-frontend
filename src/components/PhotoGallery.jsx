@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getAllPhotos, deletePhotoLocal } from '../utils/localDB';
 import './PhotoGallery.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const PhotoGallery = () => {
   const { t, language } = useLanguage();
@@ -15,11 +13,7 @@ const PhotoGallery = () => {
 
   const fetchPhotos = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${API_URL}/api/photos/my-photos`,
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
+      const response = await api.get('/api/photos/my-photos');
 
       let serverPhotos = [];
       if (response.data.success) {
@@ -72,11 +66,7 @@ const PhotoGallery = () => {
       if (photo.source === 'local') {
         await deletePhotoLocal(photo.localId);
       } else {
-        const token = localStorage.getItem('token');
-        await axios.delete(
-          `${API_URL}/api/photos/${photo.id}`,
-          { headers: { 'Authorization': `Bearer ${token}` } }
-        );
+        await api.delete(`/api/photos/${photo.id}`);
       }
 
       setPhotos(photos.filter(p => p.id !== photo.id));
