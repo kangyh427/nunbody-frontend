@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { useLanguage } from '../i18n/LanguageContext';
-import { getErrorMessage } from '../utils/errorHelper';
 import './Auth.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -21,7 +18,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
+      const response = await api.post('/api/auth/login', {
         email,
         password
       });
@@ -39,7 +36,7 @@ function Login() {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(getErrorMessage(err, t('auth.loginFailed')));
+      setError(err.response?.data?.message || t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -53,7 +50,7 @@ function Login() {
       <div className="auth-box">
         <h2>{t('auth.loginTitle')}</h2>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="error-message">{String(error)}</div>}
 
         <form onSubmit={handleSubmit}>
           <input

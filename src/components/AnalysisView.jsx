@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   BarChart, Bar, ResponsiveContainer, Cell
 } from 'recharts';
+import api from '../utils/api';
 import { useLanguage } from '../i18n/LanguageContext';
-import { getErrorMessage } from '../utils/errorHelper';
 import './AnalysisView.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const MUSCLE_KEYS = ['shoulders', 'chest', 'back', 'biceps', 'triceps', 'abs', 'obliques', 'quads', 'hamstrings', 'glutes', 'calves'];
 const MUSCLE_CATEGORIES = {
@@ -45,16 +42,14 @@ const AnalysisView = () => {
 
   const fetchPhotos = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/photos/my-photos`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.get('/api/photos/my-photos');
       if (res.data.success) setPhotos(res.data.photos);
     } catch (err) { console.error(err); }
   };
 
   const fetchUserProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/analysis/profile`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.get('/api/analysis/profile');
       if (res.data.success && res.data.profile) {
         setUserProfile({ height_cm: res.data.profile.height_cm || '', weight_kg: res.data.profile.weight_kg || '', age: res.data.profile.age || '', gender: res.data.profile.gender || '' });
       }
@@ -64,8 +59,7 @@ const AnalysisView = () => {
   const fetchHistory = async () => {
     setHistoryLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/analysis/history`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.get('/api/analysis/history');
       if (res.data.success) setHistory(res.data.history);
     } catch (err) { console.error(err); }
     finally { setHistoryLoading(false); }
@@ -74,8 +68,7 @@ const AnalysisView = () => {
   const fetchHistoryDetail = async (historyId) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/analysis/history/${historyId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.get(`/api/analysis/history/${historyId}`);
       if (res.data.success) {
         setSelectedHistory(res.data.history);
         setShowHistoryDetail(true);
@@ -88,13 +81,12 @@ const AnalysisView = () => {
 
   const saveUserProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API_URL}/api/analysis/profile`, {
+      await api.post('/api/analysis/profile', {
         height_cm: userProfile.height_cm ? parseFloat(userProfile.height_cm) : null,
         weight_kg: userProfile.weight_kg ? parseFloat(userProfile.weight_kg) : null,
         age: userProfile.age ? parseInt(userProfile.age) : null,
         gender: userProfile.gender || null
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
       setProfileSaved(true); setShowProfileModal(false);
       setTimeout(() => setProfileSaved(false), 3000);
     } catch (err) { console.error(err); }
@@ -104,11 +96,10 @@ const AnalysisView = () => {
     if (!selectedPhoto) { setError(t('upload.selectPhoto')); return; }
     setLoading(true); setError(''); setAnalysisResult(null);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(`${API_URL}/api/analysis/analyze`, { photoId: selectedPhoto.id }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.post('/api/analysis/analyze', { photoId: selectedPhoto.id });
       if (res.data.success) setAnalysisResult(res.data.analysis);
     } catch (err) {
-      setError(getErrorMessage(err, t('analysis.analysisError')));
+      setError(err.response?.data?.message || t('analysis.analysisError'));
     }
     finally { setLoading(false); }
   };
@@ -118,11 +109,10 @@ const AnalysisView = () => {
     if (selectedPhoto.id === comparePhoto.id) { setError(t('analysis.selectDifferent')); return; }
     setLoading(true); setError(''); setComparisonResult(null);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(`${API_URL}/api/analysis/compare`, { photoId1: selectedPhoto.id, photoId2: comparePhoto.id }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.post('/api/analysis/compare', { photoId1: selectedPhoto.id, photoId2: comparePhoto.id });
       if (res.data.success) setComparisonResult(res.data.comparison);
     } catch (err) {
-      setError(getErrorMessage(err, t('analysis.compareError')));
+      setError(err.response?.data?.message || t('analysis.compareError'));
     }
     finally { setLoading(false); }
   };
@@ -413,7 +403,7 @@ const AnalysisView = () => {
         </div>
       )}
 
-      {error && <div className="error-msg">{error}</div>}
+      {error && <div className="error-msg">{String(error)}</div>}
 
       {/* Action buttons */}
       {(mode === 'single' || mode === 'compare') && !showHistoryDetail && (

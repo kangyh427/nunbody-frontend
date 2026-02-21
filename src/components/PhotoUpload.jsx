@@ -1,11 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useLanguage } from '../i18n/LanguageContext';
-import { getErrorMessage } from '../utils/errorHelper';
 import { savePhotoLocal, fileToBlob } from '../utils/localDB';
 import './PhotoUpload.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const PhotoUpload = ({ onUploadSuccess }) => {
   const { t } = useLanguage();
@@ -150,7 +147,6 @@ const PhotoUpload = ({ onUploadSuccess }) => {
     setUploadProgress(0);
 
     try {
-      const token = localStorage.getItem('token');
       let uploaded = 0;
 
       for (const file of selectedFiles) {
@@ -170,16 +166,9 @@ const PhotoUpload = ({ onUploadSuccess }) => {
         formData.append('body_part', bodyPart);
         formData.append('session_id', sessionId);
 
-        await axios.post(
-          `${API_URL}/api/photos/upload`,
-          formData,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-        );
+        await api.post('/api/photos/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
 
         uploaded++;
         setUploadProgress(Math.round((uploaded / selectedFiles.length) * 100));
@@ -200,7 +189,7 @@ const PhotoUpload = ({ onUploadSuccess }) => {
         window.location.href = '/login';
         return;
       }
-      setError(getErrorMessage(err, t('upload.uploadFailed')));
+      setError(err.response?.data?.message || t('upload.uploadFailed'));
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -322,7 +311,7 @@ const PhotoUpload = ({ onUploadSuccess }) => {
         {t('security.localOnly')}
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="error-message">{String(error)}</div>}
     </div>
   );
 };
