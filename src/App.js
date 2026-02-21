@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { LanguageProvider } from './i18n/LanguageContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Settings from './pages/Settings';
+import Support from './pages/Support';
 import Dashboard from './components/Dashboard';
 
 const PrivateRoute = ({ children }) => {
@@ -59,6 +61,22 @@ function App() {
               element={
                 <PrivateRoute>
                   <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/support"
+              element={
+                <PrivateRoute>
+                  <Support />
                 </PrivateRoute>
               }
             />
